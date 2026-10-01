@@ -3,14 +3,14 @@
   "id": "gameinfo",
   "version": "${version}",
   "name": "GameInfo",
-  "description": "Gameinfo for 26.2",
+  "description": "Gameinfo for 26.3",
   "authors": ["Coda_R5"],
   "contributors": [
     "ifcifc(OriginalAuthor)",
-    "chenjL_117(Fe3O4)",
+    "chenjl_117(Mg3N2)",
     "AnaGallisallae(Mascot)"
   ],
-    "contact": {
+  "contact": {
     "homepage": "https://modrinth.com/mod/gameinfo"
   },
   "license": "All-Rights-Reserved",
@@ -35,7 +35,7 @@
     "fabric-api": "*",
     "minecraft": "${minecraft_version}"
   },
-    "suggests": {
+  "suggests": {
     "modmenu": "*"
   }
 }

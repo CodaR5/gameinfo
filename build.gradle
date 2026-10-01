@@ -12,7 +12,7 @@ base {
 
 repositories {
     maven {
-        url "https://maven.terraformersmc.com/"
+        url = "https://maven.terraformersmc.com/"
     }
 }
 
@@ -23,15 +23,19 @@ dependencies {
     implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
+def modVersion = project.version
+def mcVersion = project.minecraft_version
+def loaderVer = project.loader_version
+
 processResources {
-    inputs.property "version", project.version
-    inputs.property "minecraft_version", project.minecraft_version
-    inputs.property "loader_version", project.loader_version
+    inputs.property "version", modVersion
+    inputs.property "minecraft_version", mcVersion
+    inputs.property "loader_version", loaderVer
     filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") {
-        expand "version": project.version,
-                "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+        expand "version": modVersion,
+                "minecraft_version": mcVersion,
+                "loader_version": loaderVer
     }
 }
 

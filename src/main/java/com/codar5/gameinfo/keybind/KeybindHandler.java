@@ -7,21 +7,19 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 
 public class KeybindHandler {
 
+    private static final int SDL_SCANCODE_U = 24;
 
     public static void register() {
-        registerOpenGui();
-    }
-
-    public static void registerOpenGui() {
-        KeyMapping openGuiKeyBinding = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.gameinfo.open_gui", // 翻译键
-                GLFW.GLFW_KEY_U, // U键
-                KeyMapping.Category.register(Identifier.fromNamespaceAndPath(GameinfoClient.modName, "keybindings"))
-        ));
+        KeyMapping openGuiKeyBinding = KeyMappingHelper.registerKeyMapping(
+                new KeyMapping(
+                        "key.gameinfo.open_gui",
+                        SDL_SCANCODE_U,
+                        KeyMapping.Category.register(Identifier.fromNamespaceAndPath(GameinfoClient.modName, "keybindings"))
+                )
+        );
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openGuiKeyBinding.consumeClick()) {
                 Minecraft mc = Minecraft.getInstance();
