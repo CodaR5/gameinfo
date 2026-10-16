@@ -9,9 +9,9 @@
   "depends": {
     "fabric-api": "*",
     "fabricloader": ">=${loader_version}",
-    "minecraft": "${minecraft_version}"
+    "minecraft": "26.4-alpha.4"
   },
-  "description": "Gameinfo for 26.3",
+  "description": "Gameinfo for 26.4",
   "entrypoints": {
     "client": [
       "com.codar5.gameinfo.GameinfoClient"
