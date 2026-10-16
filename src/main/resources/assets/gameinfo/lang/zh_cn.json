@@ -37,8 +37,8 @@
 
   "gameinfo.color_picker.title": "选择颜色",
   "gameinfo.color_picker.presets": "预设颜色",
-  "gameinfo.color_picker.custom_title": "自定义颜色 (ARGB格式)",
-  "gameinfo.color_picker.format_hint": "格式: AARRGGBB 例如: FFFF0000",
+  "gameinfo.color_picker.custom_title": "自定义颜色(ARGB格式)",
+  "gameinfo.color_picker.format_hint": "格式:AARRGGBB 例如:FFFF0000",
   "gameinfo.color_picker.input_hint": "FFFFFFFF",
   "gameinfo.color_picker.use": "使用",
 
