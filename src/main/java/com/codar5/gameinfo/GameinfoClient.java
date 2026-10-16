@@ -11,6 +11,7 @@ import com.codar5.gameinfo.network.GameInfoNetwork;
 import com.codar5.gameinfo.renderer.FurnaceEventHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -31,12 +32,16 @@ public class GameinfoClient implements ClientModInitializer {
         CommandRegistrationCallback.EVENT.register(chunkLoader);
         KeybindHandler.register();
 
+        GameInfoNetwork.registerPayloads();
         GameInfoNetwork.registerClientReceiver();
 
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(modName, "custom_text"), hudOverlay);
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(modName, "block_info"), blockInfoHudRenderer);
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(modName, "entity_health"), entityHealthHudRenderer);
         FurnaceEventHandler.registerEvents();
+
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, c) ->
+                HudOverlay.slimeChunkCache.clear());
     }
 
     public static void logger(String message) {

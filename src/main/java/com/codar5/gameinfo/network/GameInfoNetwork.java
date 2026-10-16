@@ -9,8 +9,17 @@ import net.minecraft.world.item.ItemStack;
 
 public class GameInfoNetwork {
 
+    private static boolean payloadsRegistered = false;
+
+    public static long chunkKey(int x, int z) {
+        return (long) x & 0xFFFFFFFFL | ((long) z & 0xFFFFFFFFL) << 32;
+    }
+
     public static void registerPayloads() {
+        if (payloadsRegistered) return;
+        payloadsRegistered = true;
         PayloadTypeRegistry.clientboundPlay().register(FurnaceDataPayload.TYPE, FurnaceDataPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SlimeChunkSyncPayload.TYPE, SlimeChunkSyncPayload.CODEC);
     }
 
     public static void registerClientReceiver() {
@@ -22,9 +31,22 @@ public class GameInfoNetwork {
                 );
             });
         });
+
+        ClientPlayNetworking.registerGlobalReceiver(SlimeChunkSyncPayload.TYPE, (payload, context) -> {
+            context.client().execute(() -> {
+                HudOverlay.slimeChunkCache.put(
+                        chunkKey(payload.chunkX(), payload.chunkZ()),
+                        payload.isSlime()
+                );
+            });
+        });
     }
 
     public static void sendToPlayer(ServerPlayer player, FurnaceDataPayload payload) {
+        ServerPlayNetworking.send(player, payload);
+    }
+
+    public static void sendToPlayer(ServerPlayer player, SlimeChunkSyncPayload payload) {
         ServerPlayNetworking.send(player, payload);
     }
 }
