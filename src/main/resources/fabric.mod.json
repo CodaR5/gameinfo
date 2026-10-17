@@ -1,17 +1,18 @@
 {
-  "authors": [
-    "ifcifc",
-    "Coda_R5"
-  ],
-  "contact": {
-    "homepage": "https://modrinth.com/mod/gameinfo"
-  },
-  "depends": {
-    "fabric-api": "*",
-    "fabricloader": ">=${loader_version}",
-    "minecraft": "${minecraft_version}"
-  },
+  "schemaVersion": 1,
+  "id": "gameinfo",
+  "version": "${version}",
+  "name": "GameInfo",
   "description": "Gameinfo for 26.3",
+  "authors": ["ifcifc","Coda_R5"],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/gameinfo",
+    "sources": "https://github.com/CodaR5/gameinfo",
+    "issues": "https://github.com/CodaR5/gameinfo/issues"
+  },
+  "license": "Apache-2.0",
+  "icon": "assets/gameinfo/icon.png",
+  "environment": "*",
   "entrypoints": {
     "client": [
       "com.codar5.gameinfo.GameinfoClient"
@@ -26,14 +27,12 @@
       "com.codar5.gameinfo.Gameinfo"
     ]
   },
-  "environment": "*",
-  "icon": "assets/gameinfo/icon.png",
-  "id": "gameinfo",
-  "license": "Apache-2.0",
-  "name": "GameInfo",
-  "schemaVersion": 1,
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  },
   "suggests": {
     "modmenu": "*"
-  },
-  "version": "${version}"
+  }
 }
