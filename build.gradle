@@ -38,11 +38,13 @@ def loaderVer = project.loader_version
 
 processResources {
     inputs.property "version", modVersion
+    inputs.property "mod_version", modVersion
     inputs.property "minecraft_version", mcVersion
     inputs.property "loader_version", loaderVer
     filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") {
         expand "version": modVersion,
+                "mod_version": modVersion,
                 "minecraft_version": mcVersion,
                 "loader_version": loaderVer
     }
