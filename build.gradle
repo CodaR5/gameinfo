@@ -16,7 +16,7 @@ version = project.mod_version
 group = project.maven_group
 
 base {
-    archivesName = "GameInfo-${minecraft_version}"
+    archivesName = "GameInfo-${minecraft_version}-Fabric"
 }
 
 repositories {
@@ -38,11 +38,13 @@ def loaderVer = project.loader_version
 
 processResources {
     inputs.property "version", modVersion
+    inputs.property "mod_version", modVersion
     inputs.property "minecraft_version", mcVersion
     inputs.property "loader_version", loaderVer
     filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") {
         expand "version": modVersion,
+                "mod_version": modVersion,
                 "minecraft_version": mcVersion,
                 "loader_version": loaderVer
     }
@@ -66,7 +68,7 @@ java {
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}"}
+        rename { "${it}_${base.archivesName.get()}"}
     }
 }
 
