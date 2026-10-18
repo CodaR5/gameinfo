@@ -2,7 +2,9 @@ package com.codar5.gameinfo;
 
 import com.codar5.gameinfo.network.FurnaceDataPayload;
 import com.codar5.gameinfo.network.GameInfoNetwork;
+import com.codar5.gameinfo.network.SlimeChunkSyncPayload;
 import com.codar5.gameinfo.util.RendererPreferenceWriter;
+import com.codar5.gameinfo.util.SlimeChunkUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
@@ -26,6 +28,7 @@ public class Gameinfo implements ModInitializer, PreLaunchEntrypoint {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
                 if (!(sp.level() instanceof ServerLevel level)) continue;
+
                 BlockPos center = sp.blockPosition();
                 BlockPos min = center.offset(-6, -3, -6);
                 BlockPos max = center.offset(6, 3, 6);
@@ -39,6 +42,16 @@ public class Gameinfo implements ModInitializer, PreLaunchEntrypoint {
                                 f.getItem(2).copy()
                         ));
                     }
+                }
+
+                if (sp.tickCount % 10 == 0) {
+                    BlockPos bp = sp.blockPosition();
+                    int cx = bp.getX() >> 4;
+                    int cz = bp.getZ() >> 4;
+                    long seed = level.getSeed();
+                    boolean isSlime = SlimeChunkUtil.isSlimeChunk(seed, cx, cz);
+                    GameInfoNetwork.sendToPlayer(sp,
+                            new SlimeChunkSyncPayload(cx, cz, isSlime));
                 }
             }
         });
