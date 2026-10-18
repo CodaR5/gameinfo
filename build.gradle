@@ -16,7 +16,7 @@ version = project.mod_version
 group = project.maven_group
 
 base {
-    archivesName = "GameInfo-${minecraft_version}"
+    archivesName = "GameInfo-${minecraft_version}-Fabric"
 }
 
 repositories {
@@ -68,7 +68,7 @@ java {
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}"}
+        rename { "${it}_${base.archivesName.get()}"}
     }
 }
 
