@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.guardsquare:proguard-gradle:7.8.2'
+    }
+}
+
 plugins {
     id 'net.fabricmc.fabric-loom' version '1.17.+'
     id 'maven-publish'
@@ -12,7 +21,7 @@ base {
 
 repositories {
     maven {
-        url "https://maven.terraformersmc.com/"
+        url = "https://maven.terraformersmc.com/"
     }
 }
 
@@ -20,18 +29,24 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
+def modVersion = project.version
+def mcVersion = project.minecraft_version
+def loaderVer = project.loader_version
+
 processResources {
-    inputs.property "version", project.version
-    inputs.property "minecraft_version", project.minecraft_version
-    inputs.property "loader_version", project.loader_version
+    inputs.property "version", modVersion
+    inputs.property "mod_version", modVersion
+    inputs.property "minecraft_version", mcVersion
+    inputs.property "loader_version", loaderVer
     filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") {
-        expand "version": project.version,
-                "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+        expand "version": modVersion,
+                "mod_version": modVersion,
+                "minecraft_version": mcVersion,
+                "loader_version": loaderVer
     }
 }
 
@@ -55,4 +70,44 @@ jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}"}
     }
+}
+
+import proguard.gradle.ProGuardTask
+
+tasks.register('proguard', ProGuardTask) {
+    dependsOn tasks.named('jar')
+
+    configuration 'proguard-rules.pro'
+
+    injars tasks.named('jar').get().archiveFile
+    outjars layout.buildDirectory.file("libs/${base.archivesName.get()}-${project.version}-obf.jar")
+
+    def allLibs = new LinkedHashSet<File>()
+    configurations.compileClasspath.files.each { allLibs.add(it) }
+    configurations.runtimeClasspath.files.each { allLibs.add(it) }
+    allLibs.each { libraryjars it }
+
+    def javaHome = System.getProperty('java.home')
+    def jmodsDir = file("${javaHome}/jmods")
+    if (jmodsDir.exists()) {
+        fileTree(jmodsDir).matching {
+            include 'java.base.jmod'
+            include 'java.desktop.jmod'
+            include 'java.logging.jmod'
+            include 'java.sql.jmod'
+            include 'java.naming.jmod'
+            include 'java.management.jmod'
+            include 'java.xml.jmod'
+            include 'java.net.http.jmod'
+            include 'jdk.unsupported.jmod'
+        }.each { jmod ->
+            libraryjars jmod, jarfilter: '!**.jar', filter: '!module-info.class'
+        }
+    } else {
+        println "Warning: jmods directory not found at ${jmodsDir}"
+    }
+}
+
+tasks.named('build') {
+    finalizedBy tasks.named('proguard')
 }
