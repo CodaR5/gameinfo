@@ -2,6 +2,7 @@ package com.codar5.gameinfo.hud;
 
 import com.codar5.gameinfo.GameinfoClient;
 import com.codar5.gameinfo.config.GameInfoConfig;
+import com.codar5.gameinfo.network.GameInfoNetwork;
 import com.codar5.gameinfo.renderer.FurnaceDataCache;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class HudOverlay implements HudElement {
     private static final int SLIME_CHUNK_COLOR = 0xFF55FF55;
 
     public static final ConcurrentHashMap<BlockPos, ItemStack[]> serverFurnaceCache = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
 
     public HudOverlay() {
         client = Minecraft.getInstance();
@@ -317,21 +319,19 @@ public class HudOverlay implements HudElement {
 
     private boolean isSlimeChunk(BlockPos pos) {
         if (client.level == null) return false;
-        long seed = getWorldSeed();
-        if (seed == 0L) return false;
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-        return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
-    }
 
-    private long getWorldSeed() {
         if (client.hasSingleplayerServer()) {
             var server = client.getSingleplayerServer();
             if (server != null) {
-                return server.overworld().getSeed();
+                long seed = server.overworld().getSeed();
+                return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
             }
+            return false;
         }
-        return 0L;
+
+        return slimeChunkCache.getOrDefault(GameInfoNetwork.chunkKey(chunkX, chunkZ), false);
     }
 
     private int renderNetherCoordinates(GuiGraphicsExtractor drawContext, int x, int y) {
