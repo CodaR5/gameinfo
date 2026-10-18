@@ -3,7 +3,7 @@
   "id": "gameinfo",
   "version": "${version}",
   "name": "GameInfo",
-  "description": "Gameinfo for 26.3",
+  "description": "Gameinfo for ${minecraft_version}",
   "authors": ["ifcifc","Coda_R5"],
   "contact": {
     "homepage": "https://modrinth.com/mod/gameinfo",
