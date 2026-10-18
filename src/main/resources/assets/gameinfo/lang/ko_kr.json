@@ -4,13 +4,13 @@
   "category.gameinfo": "GameInfo",
   "key.category.gameinfo": "GameInfo",
   "key.category.gameinfo.keybindings": "GameInfo",
-
   "gameinfo.gui.title": "GameInfo 설정",
   "gameinfo.gui.tab.toggles": "토글",
   "gameinfo.gui.tab.color": "색상",
   "gameinfo.gui.section.select_info": "표시할 정보 선택",
   "gameinfo.gui.section.customize": "위치 및 색상 사용자 지정",
-
+  "gameinfo.gui.section.basic_info": "기본 정보",
+  "gameinfo.gui.section.advanced_info": "고급 정보",
   "gameinfo.gui.toggle.fps": "FPS 표시",
   "gameinfo.gui.toggle.time": "시간 표시",
   "gameinfo.gui.toggle.coordinates": "좌표 표시",
@@ -23,25 +23,21 @@
   "gameinfo.gui.toggle.block_info": "블록 정보",
   "gameinfo.gui.toggle.furnace_info": "화로 정보",
   "gameinfo.gui.toggle.slime_chunk": "슬라임 청크",
-
   "gameinfo.gui.label.x_pos": "X:",
   "gameinfo.gui.label.y_pos": "Y:",
   "gameinfo.gui.label.version": "버전:",
   "gameinfo.gui.label.field.x_pos": "X 위치",
   "gameinfo.gui.label.field.y_pos": "Y 위치",
   "gameinfo.gui.label.field.version": "버전",
-
   "gameinfo.gui.button.select_color": "색상 선택",
   "gameinfo.gui.button.save": "저장",
   "gameinfo.gui.button.cancel": "취소",
-
   "gameinfo.color_picker.title": "색상 선택",
   "gameinfo.color_picker.presets": "기본 색상",
   "gameinfo.color_picker.custom_title": "사용자 지정 색상 (ARGB)",
   "gameinfo.color_picker.format_hint": "형식: AARRGGBB  예: FFFF0000",
   "gameinfo.color_picker.input_hint": "FFFFFFFF",
   "gameinfo.color_picker.use": "사용",
-
   "gameinfo.hud.version": "버전: ",
   "gameinfo.hud.fps": "FPS: ",
   "gameinfo.hud.days": "일수: ",
@@ -53,13 +49,11 @@
   "gameinfo.hud.unknown": "알 수 없음",
   "gameinfo.hud.unknown_biome": "알 수 없는 생물 군계",
   "gameinfo.hud.slime_chunk": "슬라임 청크",
-
   "gameinfo.direction.north": "북",
   "gameinfo.direction.south": "남",
   "gameinfo.direction.east": "동",
   "gameinfo.direction.west": "서",
   "gameinfo.direction.unknown": "알 수 없음",
-
   "gameinfo.weekday.monday": "월요일",
   "gameinfo.weekday.tuesday": "화요일",
   "gameinfo.weekday.wednesday": "수요일",
@@ -67,13 +61,11 @@
   "gameinfo.weekday.friday": "금요일",
   "gameinfo.weekday.saturday": "토요일",
   "gameinfo.weekday.sunday": "일요일",
-
   "gameinfo.hud.furnace.title": "화로",
   "gameinfo.hud.furnace.input": "입력:",
   "gameinfo.hud.furnace.fuel": "연료:",
   "gameinfo.hud.furnace.output": "출력:",
   "gameinfo.hud.furnace.empty": "(비어 있음)",
-
   "gameinfo.gui.separator": ":",
   "gameinfo.gui.toggle.on": "ON",
   "gameinfo.gui.toggle.off": "OFF"
