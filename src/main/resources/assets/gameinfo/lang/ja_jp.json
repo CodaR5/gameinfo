@@ -4,13 +4,13 @@
   "category.gameinfo": "GameInfo",
   "key.category.gameinfo": "GameInfo",
   "key.category.gameinfo.keybindings": "GameInfo",
-
   "gameinfo.gui.title": "GameInfo 設定",
   "gameinfo.gui.tab.toggles": "トグル",
   "gameinfo.gui.tab.color": "色",
   "gameinfo.gui.section.select_info": "表示する情報を選択",
   "gameinfo.gui.section.customize": "位置と色のカスタマイズ",
-
+  "gameinfo.gui.section.basic_info": "基本情報",
+  "gameinfo.gui.section.advanced_info": "詳細情報",
   "gameinfo.gui.toggle.fps": "FPSを表示",
   "gameinfo.gui.toggle.time": "時刻を表示",
   "gameinfo.gui.toggle.coordinates": "座標を表示",
@@ -23,25 +23,21 @@
   "gameinfo.gui.toggle.block_info": "ブロック情報",
   "gameinfo.gui.toggle.furnace_info": "かまど情報",
   "gameinfo.gui.toggle.slime_chunk": "スライムチャンク",
-
   "gameinfo.gui.label.x_pos": "X:",
   "gameinfo.gui.label.y_pos": "Y:",
   "gameinfo.gui.label.version": "バージョン:",
   "gameinfo.gui.label.field.x_pos": "X 座標",
   "gameinfo.gui.label.field.y_pos": "Y 座標",
   "gameinfo.gui.label.field.version": "バージョン",
-
   "gameinfo.gui.button.select_color": "色を選択",
   "gameinfo.gui.button.save": "保存",
   "gameinfo.gui.button.cancel": "キャンセル",
-
   "gameinfo.color_picker.title": "色を選択",
   "gameinfo.color_picker.presets": "プリセットカラー",
   "gameinfo.color_picker.custom_title": "カスタムカラー (ARGB)",
   "gameinfo.color_picker.format_hint": "形式: AARRGGBB  例: FFFF0000",
   "gameinfo.color_picker.input_hint": "FFFFFFFF",
   "gameinfo.color_picker.use": "使用",
-
   "gameinfo.hud.version": "バージョン: ",
   "gameinfo.hud.fps": "FPS: ",
   "gameinfo.hud.days": "日数: ",
@@ -53,13 +49,11 @@
   "gameinfo.hud.unknown": "不明",
   "gameinfo.hud.unknown_biome": "不明なバイオーム",
   "gameinfo.hud.slime_chunk": "スライムチャンク",
-
   "gameinfo.direction.north": "北",
   "gameinfo.direction.south": "南",
   "gameinfo.direction.east": "東",
   "gameinfo.direction.west": "西",
   "gameinfo.direction.unknown": "不明",
-
   "gameinfo.weekday.monday": "月曜日",
   "gameinfo.weekday.tuesday": "火曜日",
   "gameinfo.weekday.wednesday": "水曜日",
@@ -67,13 +61,11 @@
   "gameinfo.weekday.friday": "金曜日",
   "gameinfo.weekday.saturday": "土曜日",
   "gameinfo.weekday.sunday": "日曜日",
-
   "gameinfo.hud.furnace.title": "かまど",
   "gameinfo.hud.furnace.input": "入力:",
   "gameinfo.hud.furnace.fuel": "燃料:",
   "gameinfo.hud.furnace.output": "出力:",
   "gameinfo.hud.furnace.empty": "(空)",
-
   "gameinfo.gui.separator": ":",
   "gameinfo.gui.toggle.on": "ON",
   "gameinfo.gui.toggle.off": "OFF"
