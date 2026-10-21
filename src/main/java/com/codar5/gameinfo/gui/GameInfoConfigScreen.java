@@ -258,7 +258,7 @@ public class GameInfoConfigScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context) {
         context.fill(0, 0, this.width, this.height, BG_COLOR);
 
         int centerX = this.width / 2;
@@ -269,7 +269,7 @@ public class GameInfoConfigScreen extends Screen {
         int contentBottom = this.height - CONTENT_BOTTOM_MARGIN;
         context.enableScissor(0, CONTENT_TOP - 4, this.width, contentBottom);
 
-        super.extractRenderState(context, mouseX, mouseY, delta);
+        super.extractRenderState(context);
 
         int basicTitleY = CONTENT_TOP + basicSectionTitleBaseY() + 6 - scrollOffset;
         context.centeredText(this.font,
@@ -325,8 +325,8 @@ public class GameInfoConfigScreen extends Screen {
 
         context.disableScissor();
 
-        this.saveButton.extractRenderState(context, mouseX, mouseY, delta);
-        this.cancelButton.extractRenderState(context, mouseX, mouseY, delta);
+        this.saveButton.extractRenderState(context);
+        this.cancelButton.extractRenderState(context);
     }
 
     @Override
