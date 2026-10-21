@@ -2,7 +2,6 @@ package com.codar5.gameinfo.hud;
 
 import com.codar5.gameinfo.GameinfoClient;
 import com.codar5.gameinfo.config.GameInfoConfig;
-import com.codar5.gameinfo.network.GameInfoNetwork;
 import com.codar5.gameinfo.renderer.FurnaceDataCache;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import java.util.ArrayList;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.SharedConstants;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -74,7 +72,7 @@ public class HudOverlay implements HudElement {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor drawContext, DeltaTracker tickCounter) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext) {
         if (textRenderer == null) {
             textRenderer = client.font;
             if (textRenderer == null) {
@@ -101,7 +99,7 @@ public class HudOverlay implements HudElement {
         renderFurnaceInfo(drawContext);
     }
 
-    private void renderFurnaceInfo(GuiGraphicsExtractor ctx) {
+    private void renderFurnaceInfo(GuiGraphicsExtractor drawContext) {
         if (!config.showFurnaceInfo) return;
         if (client.level == null || client.hitResult == null) return;
         if (client.hitResult.getType() != HitResult.Type.BLOCK) return;
@@ -161,38 +159,38 @@ public class HudOverlay implements HudElement {
         int panelX = (screenWidth - panelWidth) / 2;
         int panelY = screenHeight / 2 + 40;
 
-        ctx.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xC0000000);
-        ctx.fill(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFAAAAAA);
-        ctx.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
-        ctx.fill(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFAAAAAA);
-        ctx.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
+        drawContext.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xC0000000);
+        drawContext.fill(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFAAAAAA);
+        drawContext.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
+        drawContext.fill(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFAAAAAA);
+        drawContext.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
 
         Component title = Component.translatable("gameinfo.hud.furnace.title");
-        ctx.centeredText(textRenderer, title, panelX + panelWidth / 2, panelY + 5, getMainColor());
+        drawContext.centeredText(textRenderer, title, panelX + panelWidth / 2, panelY + 5, getMainColor());
 
         int rowX = panelX + 8;
         int rowY = panelY + 22;
-        drawFurnaceRow(ctx, input,  "gameinfo.hud.furnace.input",  rowX, rowY);
+        drawFurnaceRow(drawContext, input,  "gameinfo.hud.furnace.input",  rowX, rowY);
         rowY += 18;
-        drawFurnaceRow(ctx, fuel,   "gameinfo.hud.furnace.fuel",   rowX, rowY);
+        drawFurnaceRow(drawContext, fuel,   "gameinfo.hud.furnace.fuel",   rowX, rowY);
         rowY += 18;
-        drawFurnaceRow(ctx, output, "gameinfo.hud.furnace.output", rowX, rowY);
+        drawFurnaceRow(drawContext, output, "gameinfo.hud.furnace.output", rowX, rowY);
     }
 
-    private void drawFurnaceRow(GuiGraphicsExtractor ctx, ItemStack stack, String labelKey, int x, int y) {
+    private void drawFurnaceRow(GuiGraphicsExtractor drawContext, ItemStack stack, String labelKey, int x, int y) {
         Component label = Component.translatable(labelKey);
-        ctx.text(textRenderer, label, x, y + 4, getMainColor(), true);
+        drawContext.text(textRenderer, label, x, y + 4, getMainColor(), true);
         int labelWidth = textRenderer.width(label);
 
         int itemX = x + labelWidth + 6;
         if (!stack.isEmpty()) {
-            ctx.item(stack, itemX, y);
+            drawContext.item(stack, itemX, y);
             String name = stack.getHoverName().getString();
             int count = stack.getCount();
             String text = count > 1 ? name + " x" + count : name;
-            ctx.text(textRenderer, Component.literal(text), itemX + 20, y + 5, getDefaultColor(), true);
+            drawContext.text(textRenderer, Component.literal(text), itemX + 20, y + 5, getDefaultColor(), true);
         } else {
-            ctx.text(textRenderer, Component.translatable("gameinfo.hud.furnace.empty"), itemX, y + 5, 0xFF808080, true);
+            drawContext.text(textRenderer, Component.translatable("gameinfo.hud.furnace.empty"), itemX, y + 5, 0xFF808080, true);
         }
     }
 
@@ -319,19 +317,25 @@ public class HudOverlay implements HudElement {
 
     private boolean isSlimeChunk(BlockPos pos) {
         if (client.level == null) return false;
+
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
+        long chunkKey = chunkKey(chunkX, chunkZ);
 
         if (client.hasSingleplayerServer()) {
             var server = client.getSingleplayerServer();
             if (server != null) {
                 long seed = server.overworld().getSeed();
-                return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
+                if (seed != 0L) {
+                    return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
+                }
             }
-            return false;
         }
+        return slimeChunkCache.getOrDefault(chunkKey, false);
+    }
 
-        return slimeChunkCache.getOrDefault(GameInfoNetwork.chunkKey(chunkX, chunkZ), false);
+    private long chunkKey(int x, int z) {
+        return (long) x & 0xFFFFFFFFL | ((long) z & 0xFFFFFFFFL) << 32;
     }
 
     private int renderNetherCoordinates(GuiGraphicsExtractor drawContext, int x, int y) {
