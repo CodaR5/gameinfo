@@ -45,7 +45,7 @@ public class BlockInfoHudRenderer implements HudElement {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor drawContext, DeltaTracker tickCounter) {
+    public void extractRenderState(GuiGraphicsExtractor drawContext) {
         // 检查配置是否启用方块信息显示
         if (!GameinfoClient.config.showBlockInfo) return;
 
