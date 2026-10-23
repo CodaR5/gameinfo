@@ -74,7 +74,7 @@
   "gameinfo.hud.furnace.output": "Salida:",
   "gameinfo.hud.furnace.empty": "(vacío)",
 
-  "gameinfo.gui.separator": ":",
+  "gameinfo.gui.separator": ": ",
   "gameinfo.gui.toggle.on": "SÍ",
   "gameinfo.gui.toggle.off": "NO"
 }
