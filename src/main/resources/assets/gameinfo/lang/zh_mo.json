@@ -66,7 +66,7 @@
   "gameinfo.hud.furnace.fuel": "燃料:",
   "gameinfo.hud.furnace.output": "輸出:",
   "gameinfo.hud.furnace.empty": "(空)",
-  "gameinfo.gui.separator": ":",
+  "gameinfo.gui.separator": ": ",
   "gameinfo.gui.toggle.on": "開",
   "gameinfo.gui.toggle.off": "關"
 }
