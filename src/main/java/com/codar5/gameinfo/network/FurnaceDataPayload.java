@@ -8,46 +8,27 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public record FurnaceDataPayload(BlockPos pos, ItemStack input, ItemStack fuel, ItemStack output) implements CustomPacketPayload {
-
-    private static final String MOD_ID = "gameinfo";
-
     public static final CustomPacketPayload.Type<FurnaceDataPayload> TYPE =
-            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(MOD_ID, "furnace_data"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("gameinfo", "furnace_data"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, FurnaceDataPayload> CODEC =
             StreamCodec.of(
                     (buf, payload) -> {
-                        buf.writeBlockPos(payload.pos());
-                        writeStack(buf, payload.input());
-                        writeStack(buf, payload.fuel());
-                        writeStack(buf, payload.output());
+                        BlockPos.STREAM_CODEC.encode(buf, payload.pos());
+                        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, payload.input());
+                        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, payload.fuel());
+                        ItemStack.OPTIONAL_STREAM_CODEC.encode(buf, payload.output());
                     },
                     buf -> new FurnaceDataPayload(
-                            buf.readBlockPos(),
-                            readStack(buf),
-                            readStack(buf),
-                            readStack(buf)
+                            BlockPos.STREAM_CODEC.decode(buf),
+                            ItemStack.OPTIONAL_STREAM_CODEC.decode(buf),
+                            ItemStack.OPTIONAL_STREAM_CODEC.decode(buf),
+                            ItemStack.OPTIONAL_STREAM_CODEC.decode(buf)
                     )
             );
 
-    private static void writeStack(RegistryFriendlyByteBuf buf, ItemStack stack) {
-        if (stack.isEmpty()) {
-            buf.writeBoolean(false);
-        } else {
-            buf.writeBoolean(true);
-            ItemStack.STREAM_CODEC.encode(buf, stack);
-        }
-    }
-
-    private static ItemStack readStack(RegistryFriendlyByteBuf buf) {
-        if (!buf.readBoolean()) {
-            return ItemStack.EMPTY;
-        }
-        return ItemStack.STREAM_CODEC.decode(buf);
-    }
-
     @Override
-    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+    public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 }

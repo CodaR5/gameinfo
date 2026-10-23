@@ -1,181 +1,125 @@
 package com.codar5.gameinfo.gui;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import java.util.function.BiConsumer;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.CommonColors;
 
 public class ColorPickerScreen extends Screen {
     private final Screen parent;
-    private final ColorSelectedCallback callback;
+    private final BiConsumer<Integer, String> onColorSelected;
+    private EditBox hexField;
 
-    private final int[] colorPalette = {
-            0xFFFFFFFF, 0xFFE0E0E0, 0xFFC0C0C0, 0xFFA0A0A0, 0xFF808080, 0xFF606060, 0xFF404040, 0xFF000000,
-            0xFFFF0000, 0xFFFF4040, 0xFFFF8080, 0xFFFF4000, 0xFFCC0000, 0xFF800000, 0xFF400000, 0xFF800040,
-            0xFF00FF00, 0xFF40FF40, 0xFF80FF80, 0xFF00FF40, 0xFF00CC00, 0xFF008000, 0xFF004000, 0xFF408000,
-            0xFF0000FF, 0xFF4040FF, 0xFF8080FF, 0xFF0040FF, 0xFF0000CC, 0xFF000080, 0xFF000040, 0xFF004080
+    private static final int[] PRESET_COLORS = {
+            0xFFFFFFFF, 0xFFC0C0C0, 0xFFA0A0A0, 0xFF808080, 0xFF606060, 0xFF404040, 0xFF202020, 0xFF000000,
+            0xFFFF0000, 0xFFFF6060, 0xFFFFAAAA, 0xFFFF8000, 0xFFFFC000, 0xFF800000, 0xFF600000, 0xFF800080,
+            0xFF00FF00, 0xFF60FF60, 0xFFAAFFAA, 0xFF00C000, 0xFF008000, 0xFF006000, 0xFF004000, 0xFF80FF00,
+            0xFF0000FF, 0xFF6060FF, 0xFFAAAAFF, 0xFF0080FF, 0xFF0000C0, 0xFF000080, 0xFF000040, 0xFF008080
     };
 
-    private EditBox colorInputField;
-    private Button confirmCustomButton;
-    private int previewColor = 0xFFFFFFFF;
-
-    public interface ColorSelectedCallback {
-        void onColorSelected(int color, String colorName);
-    }
-
-    public ColorPickerScreen(Screen parent, ColorSelectedCallback callback) {
+    public ColorPickerScreen(Screen parent, BiConsumer<Integer, String> onColorSelected) {
         super(Component.translatable("gameinfo.color_picker.title"));
         this.parent = parent;
-        this.callback = callback;
+        this.onColorSelected = onColorSelected;
     }
 
     @Override
     protected void init() {
-        int colorSize = 32;
-        int spacing = 8;
+        int centerX = this.width / 2;
+        int centerY = this.height / 2;
+        int colorSize = 30;
+        int padding = 8;
         int cols = 8;
-        int rows = 4;
+        int totalWidth = cols * (colorSize + padding) - padding;
+        int gridStartX = centerX - totalWidth / 2;
+        int gridStartY = centerY - 100;
 
-        int gridWidth = cols * colorSize + (cols - 1) * spacing;
-        int gridHeight = rows * colorSize + (rows - 1) * spacing;
-
-        int startX = (this.width - gridWidth) / 2;
-        int startY = 50;
-
-        for (int i = 0; i < colorPalette.length; i++) {
+        for (int i = 0; i < PRESET_COLORS.length; i++) {
+            final int color = PRESET_COLORS[i];
             int row = i / cols;
             int col = i % cols;
-            int x = startX + col * (colorSize + spacing);
-            int y = startY + row * (colorSize + spacing);
+            int x = gridStartX + col * (colorSize + padding);
+            int y = gridStartY + row * (colorSize + padding);
 
-            final int colorIndex = i;
-            this.addRenderableWidget(new ColorButton(x, y, colorSize, colorSize, colorPalette[i],
-                    button -> {
-                        callback.onColorSelected(colorPalette[colorIndex], "");
-                        this.onClose();
-                    }));
+            this.addRenderableWidget(Button.builder(Component.empty(), b -> {
+                this.hexField.setValue(String.format("%08X", color));
+            }).bounds(x, y, colorSize, colorSize).build());
         }
 
-        int customY = startY + gridHeight + 25;
-        int inputWidth = 100;
-        int inputHeight = 20;
+        int inputY = centerY + 85;
+        this.hexField = new EditBox(this.font, centerX - 120, inputY, 80, 20, Component.translatable("gameinfo.color_picker.input_hint"));
+        this.hexField.setValue("FFFFFFFF");
+        this.addRenderableWidget(this.hexField);
 
-        int totalElementWidth = inputWidth + 25 + 20 + 10 + 50;
-        int elementStartX = (this.width - totalElementWidth) / 2;
+        this.addRenderableWidget(Button.builder(Component.translatable("gameinfo.color_picker.use"), b -> {
+            try {
+                String val = this.hexField.getValue();
+                if (val.length() == 6) val = "FF" + val;
+                int color = (int) Long.parseLong(val, 16);
+                this.onColorSelected.accept(color, val);
+                this.onClose();
+            } catch (Exception ignored) {}
+        }).bounds(centerX + 10, inputY, 50, 20).build());
 
-        this.colorInputField = new EditBox(this.font,
-                elementStartX, customY + 20, inputWidth, inputHeight,
-                Component.translatable("gameinfo.color_picker.custom_title"));
-        this.colorInputField.setHint(Component.translatable("gameinfo.color_picker.input_hint"));
-        this.colorInputField.setValue("FFFFFFFF");
-        this.colorInputField.setResponder(this::onColorInputChanged);
-        this.addRenderableWidget(this.colorInputField);
-
-        this.confirmCustomButton = this.addRenderableWidget(Button.builder(
-                        Component.translatable("gameinfo.color_picker.use"),
-                        button -> {
-                            try {
-                                String input = this.colorInputField.getValue().trim();
-                                if (input.length() == 8) {
-                                    int color = (int) Long.parseLong(input, 16);
-                                    callback.onColorSelected(color, "");
-                                    this.onClose();
-                                }
-                            } catch (NumberFormatException e) {
-                                // ignore
-                            }
-                        })
-                .bounds(elementStartX + inputWidth + 25 + 20 + 10, customY + 20, 50, 20)
-                .build());
-
-        this.addRenderableWidget(Button.builder(
-                        Component.translatable("gameinfo.gui.button.cancel"),
-                        button -> this.onClose())
-                .bounds(elementStartX + inputWidth + 25 + 20 + 10, customY + 50, 50, 20)
-                .build());
-    }
-
-    private void onColorInputChanged(String input) {
-        try {
-            if (input.length() == 8) {
-                this.previewColor = (int) Long.parseLong(input, 16);
-            }
-        } catch (NumberFormatException e) {
-            // ignore
-        }
+        this.addRenderableWidget(Button.builder(Component.literal("取消"), b -> {
+            this.onClose();
+        }).bounds(centerX + 65, inputY, 50, 20).build());
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-        context.fill(0, 0, this.width, this.height, 0x80000000);
-        super.extractRenderState(context, mouseX, mouseY, delta);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        this.renderBackground(graphics, mouseX, mouseY, delta);
 
-        context.centeredText(this.font, this.title, this.width / 2, 20, 0xFFFFD700);
-        context.centeredText(this.font, Component.translatable("gameinfo.color_picker.presets"), this.width / 2, 35, CommonColors.WHITE);
+        int centerX = this.width / 2;
+        int centerY = this.height / 2;
 
-        renderCustomColorArea(context);
-    }
+        graphics.drawCenteredString(this.font, this.title, centerX, centerY - 130, 0xFFFFFFFF);
+        graphics.drawCenteredString(this.font, Component.literal("预设颜色"), centerX, centerY - 115, 0xFFAAAAAA);
 
-    private void renderCustomColorArea(GuiGraphicsExtractor context) {
-        int customY = 50 + 4 * (32 + 8) - 8 + 25;
+        super.render(graphics, mouseX, mouseY, delta);
 
-        int bgX = this.width / 2 - 130;
-        int bgWidth = 260;
-        int bgHeight = 80;
-        context.fill(bgX, customY - 5, bgX + bgWidth, customY + bgHeight, 0x30333333);
+        int colorSize = 30;
+        int padding = 8;
+        int cols = 8;
+        int totalWidth = cols * (colorSize + padding) - padding;
+        int gridStartX = centerX - totalWidth / 2;
+        int gridStartY = centerY - 100;
 
-        context.centeredText(this.font, Component.translatable("gameinfo.color_picker.custom_title"), this.width / 2, customY + 8, 0xFFAAFFAA);
+        int currentColor = 0;
+        try {
+            String val = this.hexField.getValue();
+            if (val.length() == 6) val = "FF" + val;
+            currentColor = (int) Long.parseLong(val, 16);
+        } catch (Exception ignored) {}
 
-        int inputWidth = 100;
-        int totalElementWidth = inputWidth + 25 + 20 + 10 + 50;
-        int elementStartX = (this.width - totalElementWidth) / 2;
+        for (int i = 0; i < PRESET_COLORS.length; i++) {
+            int row = i / cols;
+            int col = i % cols;
+            int px = gridStartX + col * (colorSize + padding);
+            int py = gridStartY + row * (colorSize + padding);
 
-        int previewSize = 20;
-        int previewX = elementStartX + inputWidth + 25;
-        int previewY = customY + 20;
+            if (PRESET_COLORS[i] == currentColor) {
+                graphics.fill(px - 2, py - 2, px + colorSize + 2, py + colorSize + 2, 0xFFFFFFFF);
+            } else {
+                graphics.fill(px - 1, py - 1, px + colorSize + 1, py + colorSize + 1, 0xFF000000);
+            }
+            graphics.fill(px, py, px + colorSize, py + colorSize, PRESET_COLORS[i]);
+        }
 
-        context.fill(previewX - 1, previewY - 1, previewX + previewSize + 1, previewY + previewSize + 1, 0xFF000000);
-        context.fill(previewX, previewY, previewX + previewSize, previewY + previewSize, this.previewColor);
+        int inputY = centerY + 85;
+        graphics.drawCenteredString(this.font, Component.literal("自定义颜色(ARGB)"), centerX, inputY - 15, 0xFFFFFFFF);
 
-        context.text(this.font, Component.translatable("gameinfo.color_picker.format_hint"), this.width / 2 - 120, customY + 50, 0xFF888888);
+        int colorX = centerX - 30;
+        graphics.fill(colorX - 1, inputY - 1, colorX + 21, inputY + 21, 0xFF000000);
+        graphics.fill(colorX, inputY, colorX + 20, inputY + 20, currentColor);
+
+        graphics.drawCenteredString(this.font, Component.literal("格式: AARRGGBB 例如: FFFF0000"), centerX, centerY + 120, 0xFFAAAAAA);
     }
 
     @Override
     public void onClose() {
-        this.minecraft.gui.setScreen(this.parent);
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
-
-    private static class ColorButton extends Button {
-        private final int color;
-
-        public ColorButton(int x, int y, int width, int height, int color, OnPress onPress) {
-            super(x, y, width, height, Component.empty(), onPress, DEFAULT_NARRATION);
-            this.color = color;
-        }
-
-        @Override
-        protected void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
-            context.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, this.color);
-
-            if (this.isHovered()) {
-                int x = this.getX();
-                int y = this.getY();
-                int w = this.width;
-                int h = this.height;
-                int borderColor = 0xFFFFFFFF;
-                context.fill(x - 1, y - 1, x + w + 1, y, borderColor);
-                context.fill(x - 1, y + h, x + w + 1, y + h + 1, borderColor);
-                context.fill(x - 1, y, x, y + h, borderColor);
-                context.fill(x + w, y, x + w + 1, y + h, borderColor);
-            }
-        }
+        this.minecraft.setScreen(this.parent);
     }
 }

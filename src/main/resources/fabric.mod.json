@@ -22,9 +22,6 @@
     ],
     "modmenu": [
       "com.codar5.gameinfo.gui.ModMenuIntegration"
-    ],
-    "preLaunch": [
-      "com.codar5.gameinfo.Gameinfo"
     ]
   },
   "depends": {

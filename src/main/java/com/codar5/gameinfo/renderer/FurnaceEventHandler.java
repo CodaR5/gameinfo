@@ -1,19 +1,32 @@
 package com.codar5.gameinfo.renderer;
 
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.minecraft.world.level.block.Blocks;
+import com.codar5.gameinfo.network.FurnaceDataPayload;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 public class FurnaceEventHandler {
-    
-    public static void registerEvents() {
-        // 监听方块破坏事件
-        PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
-            // 检查是否是熔炉方块
-            if (state.is(Blocks.FURNACE) || state.is(Blocks.BLAST_FURNACE) || state.is(Blocks.SMOKER)) {
-                // 从缓存中删除数据
-                FurnaceDataCache.removeFurnaceData(pos);
-                System.out.println("Removed furnace data for position: " + pos);
-//                FurnaceDataCache.debug();
+
+    public static void register() {
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                HitResult hitResult = player.pick(5.0D, 0.0F, false);
+                if (hitResult.getType() == HitResult.Type.BLOCK) {
+                    BlockPos pos = ((BlockHitResult) hitResult).getBlockPos();
+                    if (player.level().getBlockEntity(pos) instanceof AbstractFurnaceBlockEntity furnace) {
+                        FurnaceDataPayload payload = new FurnaceDataPayload(
+                                pos,
+                                furnace.getItem(0),
+                                furnace.getItem(1),
+                                furnace.getItem(2)
+                        );
+                        ServerPlayNetworking.send(player, payload);
+                    }
+                }
             }
         });
     }

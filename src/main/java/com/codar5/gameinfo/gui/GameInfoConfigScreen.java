@@ -4,7 +4,7 @@ import com.codar5.gameinfo.GameinfoClient;
 import com.codar5.gameinfo.config.GameInfoConfig;
 import java.util.HashMap;
 import java.util.Map;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -196,7 +196,7 @@ public class GameInfoConfigScreen extends Screen {
         int colorBtnX = secondGroupLeft + COLOR_BOX_SIZE + COLOR_BOX_GAP;
         this.colorButton = Button.builder(
                         Component.translatable("gameinfo.gui.button.select_color"),
-                        b -> this.minecraft.gui.setScreen(new ColorPickerScreen(this, (color, colorName) -> {
+                        b -> this.minecraft.setScreen(new ColorPickerScreen(this, (color, colorName) -> {
                             config.color = color;
                         })))
                 .bounds(colorBtnX, colorTop, COLOR_BTN_W, 20)
@@ -258,33 +258,33 @@ public class GameInfoConfigScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-        context.fill(0, 0, this.width, this.height, BG_COLOR);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(0, 0, this.width, this.height, BG_COLOR);
 
         int centerX = this.width / 2;
 
-        context.centeredText(this.font, this.title, centerX, 18, TITLE_COLOR);
-        context.fill(centerX - 100, 34, centerX + 100, 35, DIVIDER_COLOR);
+        graphics.drawCenteredString(this.font, this.title, centerX, 18, TITLE_COLOR);
+        graphics.fill(centerX - 100, 34, centerX + 100, 35, DIVIDER_COLOR);
 
         int contentBottom = this.height - CONTENT_BOTTOM_MARGIN;
-        context.enableScissor(0, CONTENT_TOP - 4, this.width, contentBottom);
+        graphics.enableScissor(0, CONTENT_TOP - 4, this.width, contentBottom);
 
-        super.extractRenderState(context, mouseX, mouseY, delta);
+        super.render(graphics, mouseX, mouseY, delta);
 
         int basicTitleY = CONTENT_TOP + basicSectionTitleBaseY() + 6 - scrollOffset;
-        context.centeredText(this.font,
+        graphics.drawCenteredString(this.font,
                 Component.translatable("gameinfo.gui.section.basic_info"),
                 centerX, basicTitleY, SECTION_COLOR);
 
         int advancedTitleY = CONTENT_TOP + advancedSectionTitleBaseY() + 6 - scrollOffset;
-        context.fill(centerX - 120, advancedTitleY - 6, centerX + 120, advancedTitleY - 5, SUB_DIVIDER_COLOR);
-        context.centeredText(this.font,
+        graphics.fill(centerX - 120, advancedTitleY - 6, centerX + 120, advancedTitleY - 5, SUB_DIVIDER_COLOR);
+        graphics.drawCenteredString(this.font,
                 Component.translatable("gameinfo.gui.section.advanced_info"),
                 centerX, advancedTitleY, SECTION_COLOR);
 
         int colorTitleY = CONTENT_TOP + colorSectionTitleBaseY() + 6 - scrollOffset;
-        context.fill(centerX - 120, colorTitleY - 6, centerX + 120, colorTitleY - 5, SUB_DIVIDER_COLOR);
-        context.centeredText(this.font,
+        graphics.fill(centerX - 120, colorTitleY - 6, centerX + 120, colorTitleY - 5, SUB_DIVIDER_COLOR);
+        graphics.drawCenteredString(this.font,
                 Component.translatable("gameinfo.gui.section.customize"),
                 centerX, colorTitleY, SECTION_COLOR);
 
@@ -294,22 +294,22 @@ public class GameInfoConfigScreen extends Screen {
         int labelRight = fieldLeft - LABEL_GAP;
 
         Component xLabel = Component.translatable("gameinfo.gui.label.x_pos");
-        context.text(this.font, xLabel,
+        graphics.drawString(this.font, xLabel,
                 labelRight - this.font.width(xLabel), colorTop + 6, LABEL_COLOR);
 
         int colorBoxX = secondGroupLeft;
-        context.fill(colorBoxX - 1, colorTop - 1,
+        graphics.fill(colorBoxX - 1, colorTop - 1,
                 colorBoxX + COLOR_BOX_SIZE + 1, colorTop + COLOR_BOX_SIZE + 1, 0xFF000000);
-        context.fill(colorBoxX, colorTop,
+        graphics.fill(colorBoxX, colorTop,
                 colorBoxX + COLOR_BOX_SIZE, colorTop + COLOR_BOX_SIZE, config.color);
 
         int yRowY = colorTop + ROW_HEIGHT;
         Component yLabel = Component.translatable("gameinfo.gui.label.y_pos");
-        context.text(this.font, yLabel,
+        graphics.drawString(this.font, yLabel,
                 labelRight - this.font.width(yLabel), yRowY + 6, LABEL_COLOR);
 
         Component versionLabel = Component.translatable("gameinfo.gui.label.version");
-        context.text(this.font, versionLabel,
+        graphics.drawString(this.font, versionLabel,
                 secondGroupLeft, yRowY + 6, LABEL_COLOR);
 
         if (maxScroll > 0) {
@@ -317,21 +317,21 @@ public class GameInfoConfigScreen extends Screen {
             int barTop = CONTENT_TOP;
             int barBottom = contentBottom;
             int barHeight = barBottom - barTop;
-            context.fill(barX, barTop, barX + 4, barBottom, SCROLLBAR_TRACK);
+            graphics.fill(barX, barTop, barX + 4, barBottom, SCROLLBAR_TRACK);
             int thumbHeight = Math.max(20, barHeight * barHeight / (barHeight + maxScroll));
             int thumbTop = barTop + (barHeight - thumbHeight) * scrollOffset / maxScroll;
-            context.fill(barX, thumbTop, barX + 4, thumbTop + thumbHeight, SCROLLBAR_THUMB);
+            graphics.fill(barX, thumbTop, barX + 4, thumbTop + thumbHeight, SCROLLBAR_THUMB);
         }
 
-        context.disableScissor();
+        graphics.disableScissor();
 
-        this.saveButton.extractRenderState(context, mouseX, mouseY, delta);
-        this.cancelButton.extractRenderState(context, mouseX, mouseY, delta);
+        this.saveButton.render(graphics, mouseX, mouseY, delta);
+        this.cancelButton.render(graphics, mouseX, mouseY, delta);
     }
 
     @Override
     public void onClose() {
-        this.minecraft.gui.setScreen(this.parent);
+        this.minecraft.setScreen(this.parent);
     }
 
     @Override
