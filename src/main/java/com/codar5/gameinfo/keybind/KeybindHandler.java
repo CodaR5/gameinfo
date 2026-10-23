@@ -8,17 +8,18 @@ import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
 
 public class KeybindHandler {
-    public static final KeyMapping OPEN_GUI_KEY = new KeyMapping(
-            "key.gameinfo.open_gui",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_U,
-            KeyMapping.Category.GAMEPLAY
-    );
+    public static KeyMapping openGuiKey;
 
     public static void register() {
-        KeyBindingHelper.registerKeyBinding(OPEN_GUI_KEY);
+        openGuiKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+                "key.gameinfo.open_gui",
+                InputConstants.Type.KEYSYM,
+                GLFW.GLFW_KEY_U,
+                "category.gameinfo"
+        ));
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (OPEN_GUI_KEY.consumeClick()) {
+            while (openGuiKey.consumeClick()) {
                 if (client.screen == null) {
                     client.setScreen(new GameInfoConfigScreen(null));
                 }

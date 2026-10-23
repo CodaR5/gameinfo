@@ -7,7 +7,6 @@ import com.codar5.gameinfo.util.SlimeChunkUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -19,7 +18,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -36,7 +35,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 
-public class HudOverlay implements HudElement {
+public class HudOverlay {
     static Minecraft client;
     static Font textRenderer;
     static int DEFAULT_COLOR = CommonColors.WHITE;
@@ -49,13 +48,7 @@ public class HudOverlay implements HudElement {
     public static final ConcurrentHashMap<BlockPos, ItemStack[]> serverFurnaceCache = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
 
-    public HudOverlay() {
-        client = Minecraft.getInstance();
-        textRenderer = client.font;
-        config = GameinfoClient.config;
-    }
-
-    static EquipmentSlot[] armorSlots = {EquipmentSlot.OFFHAND, EquipmentSlot.MAINHAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD,};
+    static EquipmentSlot[] armorSlots = {EquipmentSlot.OFFHAND, EquipmentSlot.MAINHAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
 
     public void toggleHudVisibility() {
         GameInfoConfig config = GameinfoClient.config;
@@ -67,20 +60,24 @@ public class HudOverlay implements HudElement {
         System.out.println("[DEBUG]： " + message);
     }
 
-    private int getMainColor() {
+    private static int getMainColor() {
         return 0xFF000000 | (config.color & 0xFFFFFF);
     }
 
-    private int getDefaultColor() {
+    private static int getDefaultColor() {
         return 0xFF000000 | (DEFAULT_COLOR & 0xFFFFFF);
     }
 
-    @Override
-    public void render(GuiGraphics graphics, DeltaTracker tickCounter) {
+    public static void render(GuiGraphics graphics, DeltaTracker tickDelta) {
+        if (client == null) {
+            client = Minecraft.getInstance();
+            config = GameinfoClient.config;
+        }
         if (textRenderer == null) {
             textRenderer = client.font;
             if (textRenderer == null) {
                 logger("文本渲染器仍然为null，无法渲染HUD信息");
+                return;
             }
         }
 
@@ -88,15 +85,16 @@ public class HudOverlay implements HudElement {
         if (player == null) return;
         if (!config.enabled) return;
 
+        BlockPos pos = player.blockPosition();
         int xPos = config.xPos;
         int yPos = config.yPos;
         color = config.color;
 
         yPos += renderFPS(graphics, xPos, yPos);
         yPos += renderTimeAndDays(graphics, xPos, yPos);
-        yPos += renderCoordinates(graphics, xPos, yPos);
-        yPos += renderNetherCoordinates(graphics, xPos, yPos);
-        yPos += renderBiome(graphics, xPos, yPos);
+        yPos += renderCoordinates(graphics, xPos, yPos, pos);
+        yPos += renderNetherCoordinates(graphics, xPos, yPos, player);
+        yPos += renderBiome(graphics, xPos, yPos, pos);
 
         renderRemark(graphics);
         renderPlayerEquipment(graphics);
@@ -105,7 +103,7 @@ public class HudOverlay implements HudElement {
         renderFurnaceInfo(graphics);
     }
 
-    private void renderBlockInfo(GuiGraphics graphics) {
+    private static void renderBlockInfo(GuiGraphics graphics) {
         if (!config.showBlockInfo) return;
         if (client.level == null || client.hitResult == null) return;
         if (client.hitResult.getType() != HitResult.Type.BLOCK) return;
@@ -125,7 +123,6 @@ public class HudOverlay implements HudElement {
         int boxHeight = 36;
 
         int screenWidth = client.getWindow().getGuiScaledWidth();
-        int screenHeight = client.getWindow().getGuiScaledHeight();
 
         int x = screenWidth / 2 - boxWidth / 2;
         int y = 15;
@@ -143,7 +140,7 @@ public class HudOverlay implements HudElement {
         graphics.drawString(textRenderer, posStr, textX, y + 18, 0xFF55FFFF, true);
     }
 
-    private void renderEntityInfo(GuiGraphics graphics) {
+    private static void renderEntityInfo(GuiGraphics graphics) {
         if (!config.showEntityInfo) return;
         if (client.level == null || client.hitResult == null) return;
         if (client.hitResult.getType() != HitResult.Type.ENTITY) return;
@@ -192,7 +189,7 @@ public class HudOverlay implements HudElement {
         }
     }
 
-    private void renderFurnaceInfo(GuiGraphics ctx) {
+    private static void renderFurnaceInfo(GuiGraphics ctx) {
         if (!config.showFurnaceInfo) return;
         if (client.level == null || client.hitResult == null) return;
         if (client.hitResult.getType() != HitResult.Type.BLOCK) return;
@@ -241,8 +238,7 @@ public class HudOverlay implements HudElement {
                 input  = m0;
                 fuel   = m1;
                 output = m2;
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
 
         int panelWidth = 160;
@@ -270,7 +266,7 @@ public class HudOverlay implements HudElement {
         drawFurnaceRow(ctx, output, "gameinfo.hud.furnace.output", rowX, rowY);
     }
 
-    private void drawFurnaceRow(GuiGraphics ctx, ItemStack stack, String labelKey, int x, int y) {
+    private static void drawFurnaceRow(GuiGraphics ctx, ItemStack stack, String labelKey, int x, int y) {
         Component label = Component.translatable(labelKey);
         ctx.drawString(textRenderer, label, x, y + 4, getMainColor(), true);
         int labelWidth = textRenderer.width(label);
@@ -287,10 +283,10 @@ public class HudOverlay implements HudElement {
         }
     }
 
-    private void renderPlayerEquipment(GuiGraphics graphics) {
+    private static void renderPlayerEquipment(GuiGraphics graphics) {
         if (!config.showEquipment) return;
         LocalPlayer player = client.player;
-        if (player == null || client.options.hideGui) return;
+        if (player == null) return;
         int screenWidth = client.getWindow().getGuiScaledWidth();
         int screenHeight = client.getWindow().getGuiScaledHeight();
         int startX = screenWidth / 2 + 91 + 10;
@@ -331,14 +327,14 @@ public class HudOverlay implements HudElement {
         return durableItems;
     }
 
-    private void renderRemark(GuiGraphics graphics) {
+    private static void renderRemark(GuiGraphics graphics) {
         if (!config.remark) return;
         Component versionLabel = Component.translatable("gameinfo.hud.version");
         String versionValue;
         if (config.version != null && !config.version.trim().isEmpty()) {
             versionValue = config.version;
         } else {
-            versionValue = SharedConstants.getCurrentVersion().name();
+            versionValue = SharedConstants.getCurrentVersion().getName();
         }
         int y = 2;
         int x = client.getWindow().getGuiScaledWidth() - textRenderer.width(versionLabel) - textRenderer.width(versionValue) - 2;
@@ -347,7 +343,7 @@ public class HudOverlay implements HudElement {
         graphics.drawString(textRenderer, Component.literal(versionValue), x, y, getDefaultColor(), true);
     }
 
-    private int renderFPS(GuiGraphics graphics, int x, int y) {
+    private static int renderFPS(GuiGraphics graphics, int x, int y) {
         if (!config.showFPS) return 0;
         int fps = client.getFps();
         Component fpsLabel = Component.translatable("gameinfo.hud.fps");
@@ -360,7 +356,7 @@ public class HudOverlay implements HudElement {
         return DEFAULT_HEIGHT;
     }
 
-    private int renderTimeAndDays(GuiGraphics graphics, int x, int y) {
+    private static int renderTimeAndDays(GuiGraphics graphics, int x, int y) {
         if (!config.showTimeAndDays) return 0;
         LocalPlayer player = client.player;
         if (player == null) return 0;
@@ -387,11 +383,8 @@ public class HudOverlay implements HudElement {
         return DEFAULT_HEIGHT;
     }
 
-    private int renderCoordinates(GuiGraphics graphics, int x, int y) {
+    private static int renderCoordinates(GuiGraphics graphics, int x, int y, BlockPos pos) {
         if (!config.showCoordinates) return 0;
-        LocalPlayer player = client.player;
-        if (player == null) return 0;
-        BlockPos pos = player.blockPosition();
         String directionString = getDirectionString();
         Component xyzLabel = Component.translatable("gameinfo.hud.xyz");
         graphics.drawString(textRenderer, xyzLabel, x, y, getMainColor(), true);
@@ -408,8 +401,13 @@ public class HudOverlay implements HudElement {
         return DEFAULT_HEIGHT;
     }
 
-    private boolean isSlimeChunk(BlockPos pos) {
+    private static boolean isSlimeChunk(BlockPos pos) {
         if (client.level == null) return false;
+
+        if (!client.level.dimension().equals(Level.OVERWORLD)) {
+            return false;
+        }
+
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
         long chunkKey = chunkKey(chunkX, chunkZ);
@@ -430,20 +428,21 @@ public class HudOverlay implements HudElement {
         return (long) x & 0xFFFFFFFFL | ((long) z & 0xFFFFFFFFL) << 32;
     }
 
-    private int renderNetherCoordinates(GuiGraphics graphics, int x, int y) {
+    private static int renderNetherCoordinates(GuiGraphics graphics, int x, int y, Player player) {
         if (!config.showNetherCoordinates) return 0;
-        LocalPlayer player = client.player;
-        if (player == null) return 0;
         Level world = player.level();
-        BlockPos pos = player.blockPosition();
 
         String coordinateText;
         String labelKey;
         if (world.dimension().equals(Level.OVERWORLD)) {
-            coordinateText = String.format("%d %d", pos.getX() / 8, pos.getZ() / 8);
+            int nx = (int) Math.floor(player.getX() / 8.0);
+            int nz = (int) Math.floor(player.getZ() / 8.0);
+            coordinateText = String.format("%d %d", nx, nz);
             labelKey = "gameinfo.hud.nether";
         } else if (world.dimension().equals(Level.NETHER)) {
-            coordinateText = String.format("%d %d", pos.getX() * 8, pos.getZ() * 8);
+            int nx = (int) (player.getX() * 8.0);
+            int nz = (int) (player.getZ() * 8.0);
+            coordinateText = String.format("%d %d", nx, nz);
             labelKey = "gameinfo.hud.overworld";
         } else {
             return 0;
@@ -456,17 +455,14 @@ public class HudOverlay implements HudElement {
         return DEFAULT_HEIGHT;
     }
 
-    private int renderBiome(GuiGraphics graphics, int x, int y) {
+    private static int renderBiome(GuiGraphics graphics, int x, int y, BlockPos pos) {
         if (!config.showBiome) return 0;
-        LocalPlayer player = client.player;
-        if (player == null) return 0;
-        Level world = player.level();
-        BlockPos pos = player.blockPosition();
+        Level world = client.player.level();
 
         Holder<Biome> biomeEntry = world.getBiome(pos);
         String biomeName;
 
-        Identifier biomeId = world.registryAccess().lookupOrThrow(Registries.BIOME).getKey(biomeEntry.value());
+        ResourceLocation biomeId = world.registryAccess().registryOrThrow(Registries.BIOME).getKey(biomeEntry.value());
         if (biomeId != null) {
             String translationKey = "biome." + biomeId.getNamespace() + "." + biomeId.getPath();
             biomeName = Component.translatable(translationKey).getString();
@@ -481,7 +477,7 @@ public class HudOverlay implements HudElement {
         return DEFAULT_HEIGHT;
     }
 
-    private String getDirectionString() {
+    private static String getDirectionString() {
         Direction direction = null;
         if (client.player != null) {
             direction = client.player.getDirection();

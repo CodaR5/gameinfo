@@ -4,12 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public record FurnaceDataPayload(BlockPos pos, ItemStack input, ItemStack fuel, ItemStack output) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<FurnaceDataPayload> TYPE =
-            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("gameinfo", "furnace_data"));
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("gameinfo", "furnace_data"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, FurnaceDataPayload> CODEC =
             StreamCodec.of(

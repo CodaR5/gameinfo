@@ -5,9 +5,8 @@ import com.codar5.gameinfo.hud.HudOverlay;
 import com.codar5.gameinfo.keybind.KeybindHandler;
 import com.codar5.gameinfo.network.GameInfoNetwork;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
-import net.minecraft.resources.Identifier;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.client.Minecraft;
 
 public class GameinfoClient implements ClientModInitializer {
     public static GameInfoConfig config;
@@ -15,15 +14,15 @@ public class GameinfoClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         config = new GameInfoConfig();
-
-        HudElementRegistry.attachElementBefore(
-                VanillaHudElements.CHAT,
-                Identifier.parse("gameinfo:hud_overlay"),
-                new HudOverlay()
-        );
-
-        GameInfoNetwork.registerClientReceivers();
         KeybindHandler.register();
+        GameInfoNetwork.registerPayloads();
+        GameInfoNetwork.registerClientReceivers();
+
+        HudRenderCallback.EVENT.register((guiGraphics, tickDelta) -> {
+            if (Minecraft.getInstance().player != null && !Minecraft.getInstance().options.hideGui) {
+                HudOverlay.render(guiGraphics, tickDelta);
+            }
+        });
     }
 
     public static void logger(String message) {
