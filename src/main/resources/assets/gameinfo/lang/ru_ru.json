@@ -74,7 +74,7 @@
   "gameinfo.hud.furnace.output": "Выход:",
   "gameinfo.hud.furnace.empty": "(пусто)",
 
-  "gameinfo.gui.separator": ":",
+  "gameinfo.gui.separator": ": ",
   "gameinfo.gui.toggle.on": "ВКЛ",
   "gameinfo.gui.toggle.off": "ВЫКЛ"
 }
