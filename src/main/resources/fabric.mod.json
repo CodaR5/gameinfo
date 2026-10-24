@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "GameInfo",
   "description": "Gameinfo for ${minecraft_version}",
-  "authors": ["ifcifc","Coda_R5"],
+  "authors": ["ifcifc","Coda_R5","chenjl_117"],
   "contact": {
     "homepage": "https://modrinth.com/mod/gameinfo",
     "sources": "https://github.com/CodaR5/gameinfo",
