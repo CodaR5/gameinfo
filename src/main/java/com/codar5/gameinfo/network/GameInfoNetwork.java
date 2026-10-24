@@ -1,52 +1,39 @@
 package com.codar5.gameinfo.network;
 
 import com.codar5.gameinfo.hud.HudOverlay;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
+@EventBusSubscriber(modid = "gameinfo")
 public class GameInfoNetwork {
-
     private static boolean payloadsRegistered = false;
 
-    public static long chunkKey(int x, int z) {
-        return (long) x & 0xFFFFFFFFL | ((long) z & 0xFFFFFFFFL) << 32;
-    }
-
-    public static void registerPayloads() {
+    @SubscribeEvent
+    public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         if (payloadsRegistered) return;
         payloadsRegistered = true;
-        PayloadTypeRegistry.clientboundPlay().register(FurnaceDataPayload.TYPE, FurnaceDataPayload.CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(SlimeChunkSyncPayload.TYPE, SlimeChunkSyncPayload.CODEC);
-    }
 
-    public static void registerClientReceiver() {
-        ClientPlayNetworking.registerGlobalReceiver(FurnaceDataPayload.TYPE, (payload, context) -> {
-            context.client().execute(() -> {
-                HudOverlay.serverFurnaceCache.put(
-                        payload.pos(),
-                        new ItemStack[]{payload.input(), payload.fuel(), payload.output()}
-                );
-            });
-        });
+        PayloadRegistrar registrar = event.registrar("1");
 
-        ClientPlayNetworking.registerGlobalReceiver(SlimeChunkSyncPayload.TYPE, (payload, context) -> {
-            context.client().execute(() -> {
-                HudOverlay.slimeChunkCache.put(
-                        chunkKey(payload.chunkX(), payload.chunkZ()),
-                        payload.isSlime()
-                );
-            });
-        });
-    }
+        registrar.playToClient(
+                SlimeChunkSyncPayload.TYPE,
+                SlimeChunkSyncPayload.CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    long key = ((long) payload.cx() & 0xFFFFFFFFL) | (((long) payload.cz() & 0xFFFFFFFFL) << 32);
+                    HudOverlay.slimeChunkCache.put(key, payload.isSlime());
+                })
+        );
 
-    public static void sendToPlayer(ServerPlayer player, FurnaceDataPayload payload) {
-        ServerPlayNetworking.send(player, payload);
-    }
-
-    public static void sendToPlayer(ServerPlayer player, SlimeChunkSyncPayload payload) {
-        ServerPlayNetworking.send(player, payload);
+        registrar.playToClient(
+                FurnaceDataPayload.TYPE,
+                FurnaceDataPayload.CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    HudOverlay.serverFurnaceCache.put(payload.pos(), new net.minecraft.world.item.ItemStack[]{
+                            payload.input(), payload.fuel(), payload.output()
+                    });
+                })
+        );
     }
 }

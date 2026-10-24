@@ -1,64 +1,73 @@
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.17.+'
+    id 'java-library'
     id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.147'
+    id 'idea'
 }
 
-version = project.mod_version
-group = project.maven_group
-
-base {
-    archivesName = "GameInfo-${minecraft_version}-Fabric"
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
 }
+
+version = mod_version
+group = mod_group_id
 
 repositories {
+    mavenCentral()
     maven {
-        url = "https://maven.terraformersmc.com/"
+        name = "NeoForged"
+        url = "https://maven.neoforged.net/releases"
+    }
+    maven {
+        name = "Minecraft"
+        url = "https://libraries.minecraft.net/"
     }
 }
 
-dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+    exclude("**/*.bbmodel")
+    exclude("src/generated/**/.cache")
 }
 
-def modVersion = project.version
-def mcVersion = project.minecraft_version
-def loaderVer = project.loader_version
+base {
+    archivesName = "GameInfo-${minecraft_version}-NeoForge"
+}
 
-processResources {
-    inputs.property "version", modVersion
-    inputs.property "mod_version", modVersion
-    inputs.property "minecraft_version", mcVersion
-    inputs.property "loader_version", loaderVer
-    filteringCharset = "UTF-8"
-    filesMatching("fabric.mod.json") {
-        expand "version": modVersion,
-                "mod_version": modVersion,
-                "minecraft_version": mcVersion,
-                "loader_version": loaderVer
+tasks.named('jar', Jar).configure {
+    archiveVersion = mod_version
+    archiveClassifier = ""
+}
+
+neoForge {
+    version = project.neo_version
+    runs {
+        client { client() }
+        server { server(); programArgument '--nogui' }
+        data {
+            clientData()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
     }
+    mods { "${mod_id}" { sourceSet(sourceSets.main) } }
 }
 
-def targetJavaVersion = 25
-tasks.withType(JavaCompile).configureEach {
-    it.options.encoding = "UTF-8"
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        it.options.release.set(targetJavaVersion)
-    }
-}
+configurations { runtimeClasspath.extendsFrom localRuntime }
 
-java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
-    withSourcesJar()
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
+            neo_version: neo_version, neo_version_range: neo_version_range,
+            loader_version_range: loader_version_range,
+            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license,
+            mod_version: mod_version, mod_authors: mod_authors, mod_description: mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
 }
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
 
-jar {
-    from("LICENSE") {
-        rename { "${it}_${base.archivesName.get()}"}
-    }
-}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

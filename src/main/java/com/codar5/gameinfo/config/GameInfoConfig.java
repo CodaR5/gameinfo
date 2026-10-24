@@ -1,6 +1,5 @@
 package com.codar5.gameinfo.config;
 
-import com.codar5.gameinfo.GameinfoClient;
 import com.codar5.gameinfo.util.HexUtil;
 import com.google.gson.Gson;
 import java.io.File;
@@ -67,7 +66,7 @@ public class GameInfoConfig {
             showBlockInfo = false;
         } else {
             loadConfig();
-            GameinfoClient.logger("加载到配置文件" + new Gson().toJson(this));
+            System.out.println("[GameInfo] " + new Gson().toJson(this));
         }
     }
 

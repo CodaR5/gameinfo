@@ -1,6 +1,6 @@
 package com.codar5.gameinfo.gui;
 
-import com.codar5.gameinfo.GameinfoClient;
+import com.codar5.gameinfo.GameInfoNeoForge;
 import com.codar5.gameinfo.config.GameInfoConfig;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class GameInfoConfigScreen extends Screen {
     public GameInfoConfigScreen(Screen parent) {
         super(Component.translatable("gameinfo.gui.title"));
         this.parent = parent;
-        this.config = GameinfoClient.config;
+        this.config = GameInfoNeoForge.config;
         this.backupConfig = new GameInfoConfig();
         this.backupConfig.copyFrom(this.config);
     }
@@ -85,29 +85,12 @@ public class GameInfoConfigScreen extends Screen {
         return h;
     }
 
-    private int basicSectionTitleBaseY() {
-        return 0;
-    }
-
-    private int basicSectionContentBaseY() {
-        return SECTION_TITLE_H;
-    }
-
-    private int advancedSectionTitleBaseY() {
-        return SECTION_TITLE_H + ROW_HEIGHT * 3 + SECTION_GAP;
-    }
-
-    private int advancedSectionContentBaseY() {
-        return advancedSectionTitleBaseY() + SECTION_TITLE_H;
-    }
-
-    private int colorSectionTitleBaseY() {
-        return advancedSectionContentBaseY() + ROW_HEIGHT * 3 + SECTION_GAP;
-    }
-
-    private int colorSectionContentBaseY() {
-        return colorSectionTitleBaseY() + SECTION_TITLE_H;
-    }
+    private int basicSectionTitleBaseY() { return 0; }
+    private int basicSectionContentBaseY() { return SECTION_TITLE_H; }
+    private int advancedSectionTitleBaseY() { return SECTION_TITLE_H + ROW_HEIGHT * 3 + SECTION_GAP; }
+    private int advancedSectionContentBaseY() { return advancedSectionTitleBaseY() + SECTION_TITLE_H; }
+    private int colorSectionTitleBaseY() { return advancedSectionContentBaseY() + ROW_HEIGHT * 3 + SECTION_GAP; }
+    private int colorSectionContentBaseY() { return colorSectionTitleBaseY() + SECTION_TITLE_H; }
 
     private int colorSectionFieldLeft() {
         int leftBlockW = FIELD_WIDTH_SMALL + SECOND_GROUP_GAP + COLOR_BOX_SIZE + COLOR_BOX_GAP + COLOR_BTN_W;
@@ -132,90 +115,49 @@ public class GameInfoConfigScreen extends Screen {
         int basicTop = basicSectionContentBaseY();
         int rowY = basicTop;
 
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.fps", () -> config.showFPS, v -> config.showFPS = v,
-                leftX, rowY, COLUMN_WIDTH, 20), rowY);
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.nether", () -> config.showNetherCoordinates, v -> config.showNetherCoordinates = v,
-                rightX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.fps", () -> config.showFPS, v -> config.showFPS = v, leftX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.nether", () -> config.showNetherCoordinates, v -> config.showNetherCoordinates = v, rightX, rowY, COLUMN_WIDTH, 20), rowY);
         rowY += ROW_HEIGHT;
 
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.time", () -> config.showTimeAndDays, v -> config.showTimeAndDays = v,
-                leftX, rowY, COLUMN_WIDTH, 20), rowY);
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.biome", () -> config.showBiome, v -> config.showBiome = v,
-                rightX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.time", () -> config.showTimeAndDays, v -> config.showTimeAndDays = v, leftX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.biome", () -> config.showBiome, v -> config.showBiome = v, rightX, rowY, COLUMN_WIDTH, 20), rowY);
         rowY += ROW_HEIGHT;
 
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.coordinates", () -> config.showCoordinates, v -> config.showCoordinates = v,
-                leftX, rowY, COLUMN_WIDTH, 20), rowY);
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.enabled", () -> config.enabled, v -> {
-                    config.enabled = v;
-                    GameinfoClient.logger("Enable HUD: " + v);
-                },
-                rightX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.coordinates", () -> config.showCoordinates, v -> config.showCoordinates = v, leftX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.enabled", () -> config.enabled, v -> config.enabled = v, rightX, rowY, COLUMN_WIDTH, 20), rowY);
 
         int advancedTop = advancedSectionContentBaseY();
         rowY = advancedTop;
 
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.equipment", () -> config.showEquipment, v -> config.showEquipment = v,
-                leftX, rowY, COLUMN_WIDTH, 20), rowY);
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.block_info", () -> config.showBlockInfo, v -> config.showBlockInfo = v,
-                rightX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.equipment", () -> config.showEquipment, v -> config.showEquipment = v, leftX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.block_info", () -> config.showBlockInfo, v -> config.showBlockInfo = v, rightX, rowY, COLUMN_WIDTH, 20), rowY);
         rowY += ROW_HEIGHT;
 
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.remark", () -> config.remark, v -> config.remark = v,
-                leftX, rowY, COLUMN_WIDTH, 20), rowY);
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.furnace_info", () -> config.showFurnaceInfo, v -> config.showFurnaceInfo = v,
-                rightX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.remark", () -> config.remark, v -> config.remark = v, leftX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.furnace_info", () -> config.showFurnaceInfo, v -> config.showFurnaceInfo = v, rightX, rowY, COLUMN_WIDTH, 20), rowY);
         rowY += ROW_HEIGHT;
 
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.entity_info", () -> config.showEntityInfo, v -> config.showEntityInfo = v,
-                leftX, rowY, COLUMN_WIDTH, 20), rowY);
-        addScrolled(GuiHelper.createToggleButton(
-                "gameinfo.gui.toggle.slime_chunk", () -> config.showSlimeChunk, v -> config.showSlimeChunk = v,
-                rightX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.entity_info", () -> config.showEntityInfo, v -> config.showEntityInfo = v, leftX, rowY, COLUMN_WIDTH, 20), rowY);
+        addScrolled(GuiHelper.createToggleButton("gameinfo.gui.toggle.slime_chunk", () -> config.showSlimeChunk, v -> config.showSlimeChunk = v, rightX, rowY, COLUMN_WIDTH, 20), rowY);
 
         int colorTop = colorSectionContentBaseY();
         int fieldLeft = colorSectionFieldLeft();
         int secondGroupLeft = colorSectionSecondGroupLeft();
 
-        this.xPosField = GuiHelper.createNumberField(
-                this.font, "gameinfo.gui.label.field.x_pos", () -> config.xPos, v -> config.xPos = v,
-                fieldLeft, colorTop, FIELD_WIDTH_SMALL, 20);
+        this.xPosField = GuiHelper.createNumberField(this.font, "gameinfo.gui.label.field.x_pos", () -> config.xPos, v -> config.xPos = v, fieldLeft, colorTop, FIELD_WIDTH_SMALL, 20);
         addScrolled(this.xPosField, colorTop);
 
         int colorBtnX = secondGroupLeft + COLOR_BOX_SIZE + COLOR_BOX_GAP;
-        this.colorButton = Button.builder(
-                        Component.translatable("gameinfo.gui.button.select_color"),
-                        b -> this.minecraft.gui.setScreen(new ColorPickerScreen(this, (color, colorName) -> {
-                            config.color = color;
-                        })))
-                .bounds(colorBtnX, colorTop, COLOR_BTN_W, 20)
-                .build();
+        this.colorButton = Button.builder(Component.translatable("gameinfo.gui.button.select_color"), b -> this.minecraft.gui.setScreen(new ColorPickerScreen(this, (color, colorName) -> config.color = color))).bounds(colorBtnX, colorTop, COLOR_BTN_W, 20).build();
         addScrolled(this.colorButton, colorTop);
 
         int yRowY = colorTop + ROW_HEIGHT;
-        this.yPosField = GuiHelper.createNumberField(
-                this.font, "gameinfo.gui.label.field.y_pos", () -> config.yPos, v -> config.yPos = v,
-                fieldLeft, yRowY, FIELD_WIDTH_SMALL, 20);
+        this.yPosField = GuiHelper.createNumberField(this.font, "gameinfo.gui.label.field.y_pos", () -> config.yPos, v -> config.yPos = v, fieldLeft, yRowY, FIELD_WIDTH_SMALL, 20);
         addScrolled(this.yPosField, yRowY);
 
         Component versionLabel = Component.translatable("gameinfo.gui.label.version");
         int versionFieldX = secondGroupLeft + this.font.width(versionLabel) + LABEL_GAP;
-        this.versionField = GuiHelper.createTextField(
-                this.font, "gameinfo.gui.label.field.version",
-                () -> config.version,
-                v -> config.version = v,
-                versionFieldX, yRowY, COLOR_BTN_W, 20);
+        this.versionField = GuiHelper.createTextField(this.font, "gameinfo.gui.label.field.version", () -> config.version, v -> config.version = v, versionFieldX, yRowY, COLOR_BTN_W, 20);
         addScrolled(this.versionField, yRowY);
     }
 
@@ -260,9 +202,7 @@ public class GameInfoConfigScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, this.width, this.height, BG_COLOR);
-
         int centerX = this.width / 2;
-
         context.centeredText(this.font, this.title, centerX, 18, TITLE_COLOR);
         context.fill(centerX - 100, 34, centerX + 100, 35, DIVIDER_COLOR);
 
@@ -272,21 +212,15 @@ public class GameInfoConfigScreen extends Screen {
         super.extractRenderState(context, mouseX, mouseY, delta);
 
         int basicTitleY = CONTENT_TOP + basicSectionTitleBaseY() + 6 - scrollOffset;
-        context.centeredText(this.font,
-                Component.translatable("gameinfo.gui.section.basic_info"),
-                centerX, basicTitleY, SECTION_COLOR);
+        context.centeredText(this.font, Component.translatable("gameinfo.gui.section.basic_info"), centerX, basicTitleY, SECTION_COLOR);
 
         int advancedTitleY = CONTENT_TOP + advancedSectionTitleBaseY() + 6 - scrollOffset;
         context.fill(centerX - 120, advancedTitleY - 6, centerX + 120, advancedTitleY - 5, SUB_DIVIDER_COLOR);
-        context.centeredText(this.font,
-                Component.translatable("gameinfo.gui.section.advanced_info"),
-                centerX, advancedTitleY, SECTION_COLOR);
+        context.centeredText(this.font, Component.translatable("gameinfo.gui.section.advanced_info"), centerX, advancedTitleY, SECTION_COLOR);
 
         int colorTitleY = CONTENT_TOP + colorSectionTitleBaseY() + 6 - scrollOffset;
         context.fill(centerX - 120, colorTitleY - 6, centerX + 120, colorTitleY - 5, SUB_DIVIDER_COLOR);
-        context.centeredText(this.font,
-                Component.translatable("gameinfo.gui.section.customize"),
-                centerX, colorTitleY, SECTION_COLOR);
+        context.centeredText(this.font, Component.translatable("gameinfo.gui.section.customize"), centerX, colorTitleY, SECTION_COLOR);
 
         int colorTop = CONTENT_TOP + colorSectionContentBaseY() - scrollOffset;
         int fieldLeft = colorSectionFieldLeft();
@@ -294,23 +228,18 @@ public class GameInfoConfigScreen extends Screen {
         int labelRight = fieldLeft - LABEL_GAP;
 
         Component xLabel = Component.translatable("gameinfo.gui.label.x_pos");
-        context.text(this.font, xLabel,
-                labelRight - this.font.width(xLabel), colorTop + 6, LABEL_COLOR);
+        context.text(this.font, xLabel, labelRight - this.font.width(xLabel), colorTop + 6, LABEL_COLOR);
 
         int colorBoxX = secondGroupLeft;
-        context.fill(colorBoxX - 1, colorTop - 1,
-                colorBoxX + COLOR_BOX_SIZE + 1, colorTop + COLOR_BOX_SIZE + 1, 0xFF000000);
-        context.fill(colorBoxX, colorTop,
-                colorBoxX + COLOR_BOX_SIZE, colorTop + COLOR_BOX_SIZE, config.color);
+        context.fill(colorBoxX - 1, colorTop - 1, colorBoxX + COLOR_BOX_SIZE + 1, colorTop + COLOR_BOX_SIZE + 1, 0xFF000000);
+        context.fill(colorBoxX, colorTop, colorBoxX + COLOR_BOX_SIZE, colorTop + COLOR_BOX_SIZE, config.color);
 
         int yRowY = colorTop + ROW_HEIGHT;
         Component yLabel = Component.translatable("gameinfo.gui.label.y_pos");
-        context.text(this.font, yLabel,
-                labelRight - this.font.width(yLabel), yRowY + 6, LABEL_COLOR);
+        context.text(this.font, yLabel, labelRight - this.font.width(yLabel), yRowY + 6, LABEL_COLOR);
 
         Component versionLabel = Component.translatable("gameinfo.gui.label.version");
-        context.text(this.font, versionLabel,
-                secondGroupLeft, yRowY + 6, LABEL_COLOR);
+        context.text(this.font, versionLabel, secondGroupLeft, yRowY + 6, LABEL_COLOR);
 
         if (maxScroll > 0) {
             int barX = this.width - 10;

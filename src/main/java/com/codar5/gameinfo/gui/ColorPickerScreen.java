@@ -85,7 +85,6 @@ public class ColorPickerScreen extends Screen {
                                     this.onClose();
                                 }
                             } catch (NumberFormatException e) {
-                                // ignore
                             }
                         })
                 .bounds(elementStartX + inputWidth + 25 + 20 + 10, customY + 20, 50, 20)
@@ -104,7 +103,6 @@ public class ColorPickerScreen extends Screen {
                 this.previewColor = (int) Long.parseLong(input, 16);
             }
         } catch (NumberFormatException e) {
-            // ignore
         }
     }
 

@@ -3,7 +3,6 @@ package com.codar5.gameinfo.util;
 import net.minecraft.util.RandomSource;
 
 public class SlimeChunkUtil {
-
     public static boolean isSlimeChunk(long seed, int chunkX, int chunkZ) {
         RandomSource random = RandomSource.create(
                 seed

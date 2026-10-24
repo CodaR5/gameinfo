@@ -1,14 +1,13 @@
 package com.codar5.gameinfo.hud;
 
-import com.codar5.gameinfo.GameinfoClient;
+import com.codar5.gameinfo.GameInfoNeoForge;
 import com.codar5.gameinfo.config.GameInfoConfig;
-import com.codar5.gameinfo.network.GameInfoNetwork;
 import com.codar5.gameinfo.renderer.FurnaceDataCache;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -32,9 +31,10 @@ import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.client.gui.GuiLayer;
 import org.jetbrains.annotations.NotNull;
 
-public class HudOverlay implements HudElement {
+public class HudOverlay implements GuiLayer {
     static Minecraft client;
     static Font textRenderer;
     static int DEFAULT_COLOR = CommonColors.WHITE;
@@ -45,18 +45,17 @@ public class HudOverlay implements HudElement {
     private static final int SLIME_CHUNK_COLOR = 0xFF55FF55;
 
     public static final ConcurrentHashMap<BlockPos, ItemStack[]> serverFurnaceCache = new ConcurrentHashMap<>();
-    public static final ConcurrentHashMap<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
+    public static final Map<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
 
     public HudOverlay() {
         client = Minecraft.getInstance();
         textRenderer = client.font;
-        config = GameinfoClient.config;
+        config = GameInfoNeoForge.config;
     }
 
     static EquipmentSlot[] armorSlots = {EquipmentSlot.OFFHAND, EquipmentSlot.MAINHAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD,};
 
     public void toggleHudVisibility() {
-        GameInfoConfig config = GameinfoClient.config;
         config.enabled = !config.enabled;
         config.saveConfig();
     }
@@ -74,7 +73,7 @@ public class HudOverlay implements HudElement {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor drawContext, DeltaTracker tickCounter) {
+    public void render(GuiGraphicsExtractor drawContext, DeltaTracker tickCounter) {
         if (textRenderer == null) {
             textRenderer = client.font;
             if (textRenderer == null) {
@@ -319,19 +318,22 @@ public class HudOverlay implements HudElement {
 
     private boolean isSlimeChunk(BlockPos pos) {
         if (client.level == null) return false;
+        if (!client.level.dimension().equals(Level.OVERWORLD)) return false;
+
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
+        long chunkKey = ((long) chunkX & 0xFFFFFFFFL) | (((long) chunkZ & 0xFFFFFFFFL) << 32);
 
         if (client.hasSingleplayerServer()) {
             var server = client.getSingleplayerServer();
             if (server != null) {
                 long seed = server.overworld().getSeed();
+                if (seed == 0L) return false;
                 return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
             }
-            return false;
         }
 
-        return slimeChunkCache.getOrDefault(GameInfoNetwork.chunkKey(chunkX, chunkZ), false);
+        return slimeChunkCache.getOrDefault(chunkKey, false);
     }
 
     private int renderNetherCoordinates(GuiGraphicsExtractor drawContext, int x, int y) {
@@ -341,12 +343,12 @@ public class HudOverlay implements HudElement {
         Level world = player.level();
         BlockPos pos = player.blockPosition();
 
-        String coordinateText;
-        String labelKey;
-        if (world.dimension().identifier().equals(Level.OVERWORLD.identifier())) {
+        String coordinateText = "";
+        String labelKey = "";
+        if (world.dimension().equals(Level.OVERWORLD)) {
             coordinateText = String.format("%d %d", pos.getX() / 8, pos.getZ() / 8);
             labelKey = "gameinfo.hud.nether";
-        } else if (world.dimension().identifier().equals(Level.NETHER.identifier())) {
+        } else if (world.dimension().equals(Level.NETHER)) {
             coordinateText = String.format("%d %d", pos.getX() * 8, pos.getZ() * 8);
             labelKey = "gameinfo.hud.overworld";
         } else {
