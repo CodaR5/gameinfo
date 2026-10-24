@@ -2,9 +2,21 @@ name: Build GameInfo Mod
 
 on:
   push:
-    branches: [ "26.2-Fabric", "main", "master" ]
+    branches: 
+      - "26.2-Fabric"
+      - "26.3-Fabric"
+      - "26.3-NeoForge"
+      - "26.4-snapshot"
+      - "1.21.1-Fabric"
+      - "1.21.11-Fabric"
   pull_request:
-    branches: [ "26.2-Fabric", "main", "master" ]
+    branches: 
+      - "26.2-Fabric"
+      - "26.3-Fabric"
+      - "26.3-NeoForge"
+      - "26.4-snapshot"
+      - "1.21.1-Fabric"
+      - "1.21.11-Fabric"
 
 jobs:
   build:
@@ -31,5 +43,5 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: GameInfo-Mod-Jar
+          name: GameInfo-Jar-${{ github.ref_name }}
           path: build/libs/*.jar
