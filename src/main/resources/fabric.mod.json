@@ -3,8 +3,8 @@
   "id": "gameinfo",
   "version": "${mod_version}",
   "name": "GameInfo",
-  "description": "Gameinfo for ${minecraft_version}",
-  "authors": ["ifcifc","Coda_R5"],
+  "description": "A comprehensive HUD providing FPS, coordinates, biome, equipment durability, and real-time furnace info. Features safe slime chunk calculation for both singleplayer and multiplayer without leaking server seeds.",
+  "authors": ["ifcifc","Coda_R5","chenjl_117"],
   "contact": {
     "homepage": "https://modrinth.com/mod/gameinfo",
     "sources": "https://github.com/CodaR5/gameinfo",
@@ -28,7 +28,7 @@
     ]
   },
   "depends": {
-    "fabricloader": ">=0.19.5",
+    "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
     "minecraft": "26.4-alpha.5"
   },
