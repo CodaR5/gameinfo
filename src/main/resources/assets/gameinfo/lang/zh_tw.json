@@ -25,6 +25,8 @@
   "gameinfo.gui.toggle.slime_chunk": "史萊姆區塊",
   "gameinfo.gui.label.x_pos": "X:",
   "gameinfo.gui.label.y_pos": "Y:",
+  "gameinfo.gui.label.seed": "種子: ",
+  "gameinfo.gui.label.field.seed": "輸入種子",
   "gameinfo.gui.label.version": "版本:",
   "gameinfo.gui.label.field.x_pos": "X位置",
   "gameinfo.gui.label.field.y_pos": "Y位置",
