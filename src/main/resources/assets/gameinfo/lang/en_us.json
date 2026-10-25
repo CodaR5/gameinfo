@@ -25,6 +25,8 @@
   "gameinfo.gui.toggle.slime_chunk": "Slime Chunk",
   "gameinfo.gui.label.x_pos": "X:",
   "gameinfo.gui.label.y_pos": "Y:",
+  "gameinfo.gui.label.seed": "Seed:",
+  "gameinfo.gui.label.field.seed": "Enter seed",
   "gameinfo.gui.label.version": "Version:",
   "gameinfo.gui.label.field.x_pos": "X Position",
   "gameinfo.gui.label.field.y_pos": "Y Position",
