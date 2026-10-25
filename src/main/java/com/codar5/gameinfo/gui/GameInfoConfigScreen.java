@@ -2,8 +2,10 @@ package com.codar5.gameinfo.gui;
 
 import com.codar5.gameinfo.GameinfoClient;
 import com.codar5.gameinfo.config.GameInfoConfig;
+import com.codar5.gameinfo.network.WorldSeedStore;
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -50,6 +52,7 @@ public class GameInfoConfigScreen extends Screen {
     private EditBox xPosField;
     private EditBox yPosField;
     private EditBox versionField;
+    private EditBox seedField;
     private Button colorButton;
     private Button saveButton;
     private Button cancelButton;
@@ -80,7 +83,7 @@ public class GameInfoConfigScreen extends Screen {
         int h = 0;
         h += SECTION_TITLE_H + ROW_HEIGHT * 3 + SECTION_GAP;
         h += SECTION_TITLE_H + ROW_HEIGHT * 3 + SECTION_GAP;
-        h += SECTION_TITLE_H + ROW_HEIGHT * 2;
+        h += SECTION_TITLE_H + ROW_HEIGHT * 3;
         h += 20;
         return h;
     }
@@ -109,9 +112,13 @@ public class GameInfoConfigScreen extends Screen {
         return colorSectionTitleBaseY() + SECTION_TITLE_H;
     }
 
+    private int colorSectionTotalWidth() {
+        int versionLabelWidth = this.font.width(Component.translatable("gameinfo.gui.label.version"));
+        return FIELD_WIDTH_SMALL + SECOND_GROUP_GAP + versionLabelWidth + LABEL_GAP + COLOR_BTN_W;
+    }
+
     private int colorSectionFieldLeft() {
-        int leftBlockW = FIELD_WIDTH_SMALL + SECOND_GROUP_GAP + COLOR_BOX_SIZE + COLOR_BOX_GAP + COLOR_BTN_W;
-        return this.width / 2 - leftBlockW / 2;
+        return this.width / 2 - colorSectionTotalWidth() / 2;
     }
 
     private int colorSectionSecondGroupLeft() {
@@ -187,6 +194,7 @@ public class GameInfoConfigScreen extends Screen {
         int colorTop = colorSectionContentBaseY();
         int fieldLeft = colorSectionFieldLeft();
         int secondGroupLeft = colorSectionSecondGroupLeft();
+        int totalWidth = colorSectionTotalWidth();
 
         this.xPosField = GuiHelper.createNumberField(
                 this.font, "gameinfo.gui.label.field.x_pos", () -> config.xPos, v -> config.xPos = v,
@@ -217,6 +225,32 @@ public class GameInfoConfigScreen extends Screen {
                 v -> config.version = v,
                 versionFieldX, yRowY, COLOR_BTN_W, 20);
         addScrolled(this.versionField, yRowY);
+
+        int seedRowY = colorTop + ROW_HEIGHT * 2;
+        long currentSeed = WorldSeedStore.resolve();
+        String seedStr = currentSeed == 0L ? "" : String.valueOf(currentSeed);
+
+        this.seedField = new EditBox(this.font, fieldLeft, seedRowY, totalWidth, 20, Component.translatable("gameinfo.gui.label.field.seed"));
+        this.seedField.setMaxLength(25);
+        this.seedField.setValue(seedStr);
+        this.seedField.setHint(Component.translatable("gameinfo.gui.label.field.seed"));
+
+        if (Minecraft.getInstance().hasSingleplayerServer()) {
+            this.seedField.setEditable(false);
+            this.seedField.setValue("Auto (Singleplayer)");
+        } else {
+            this.seedField.setResponder(text -> {
+                try {
+                    if (text.trim().isEmpty()) {
+                        WorldSeedStore.clearManual();
+                    } else {
+                        WorldSeedStore.setManual(Long.parseLong(text.trim()));
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            });
+        }
+        addScrolled(this.seedField, seedRowY);
     }
 
     private void createBottomButtons() {
@@ -311,6 +345,11 @@ public class GameInfoConfigScreen extends Screen {
         Component versionLabel = Component.translatable("gameinfo.gui.label.version");
         context.text(this.font, versionLabel,
                 secondGroupLeft, yRowY + 6, LABEL_COLOR);
+
+        int seedRowY = colorTop + ROW_HEIGHT * 2;
+        Component seedLabel = Component.translatable("gameinfo.gui.label.seed");
+        context.text(this.font, seedLabel,
+                labelRight - this.font.width(seedLabel), seedRowY + 6, LABEL_COLOR);
 
         if (maxScroll > 0) {
             int barX = this.width - 10;
