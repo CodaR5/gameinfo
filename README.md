@@ -1,6 +1,6 @@
 # GameInfo Unofficial Port
 
-GameInfo Unofficial Port 是 ifcifc 原版 GameInfo 的非官方移植版。原版仓库在 [GitLab](https://gitlab.com/ifcifc94/gameinfo-mod)，本仓库不是原作者维护，也不是官方分支。
+GameInfo Unofficial Port 是 ifcifc 原版 [GameInfo](https://www.curseforge.com/minecraft/mc-mods/gameinfo) 的非官方移植版。原版仓库在 [GitLab](https://gitlab.com/ifcifc94/gameinfo-mod)，本仓库不是原作者维护，也不是官方分支。
 
 > **版权与来源声明**
 > 本项目基于 basketikun、ifcifc 的 gameinfo 早期版本开发，针对高版本 Minecraft 进行了代码适配、重构与功能扩展。
