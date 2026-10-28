@@ -3,7 +3,6 @@ package com.codar5.gameinfo;
 import com.codar5.gameinfo.network.FurnaceDataPayload;
 import com.codar5.gameinfo.network.GameInfoNetwork;
 import com.codar5.gameinfo.network.SlimeChunkSyncPayload;
-import com.codar5.gameinfo.util.RendererPreferenceWriter;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -14,12 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-public class Gameinfo implements ModInitializer, PreLaunchEntrypoint {
-
-    @Override
-    public void onPreLaunch() {
-        RendererPreferenceWriter.forceOpenGLPreference();
-    }
+public class Gameinfo implements ModInitializer {
 
     @Override
     public void onInitialize() {
