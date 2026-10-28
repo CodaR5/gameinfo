@@ -22,15 +22,12 @@
     ],
     "modmenu": [
       "com.codar5.gameinfo.gui.ModMenuIntegration"
-    ],
-    "preLaunch": [
-      "com.codar5.gameinfo.Gameinfo"
     ]
   },
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
-    "minecraft": "26.4-alpha.5"
+    "minecraft": "26.4-alpha.6"
   },
   "suggests": {
     "modmenu": "*"
