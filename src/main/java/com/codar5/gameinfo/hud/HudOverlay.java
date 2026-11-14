@@ -5,7 +5,9 @@ import com.codar5.gameinfo.config.GameInfoConfig;
 import com.codar5.gameinfo.renderer.FurnaceDataCache;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.SharedConstants;
@@ -43,7 +45,7 @@ public class HudOverlay implements HudElement {
     private static final int SLIME_CHUNK_COLOR = 0xFF55FF55;
 
     public static final ConcurrentHashMap<BlockPos, ItemStack[]> serverFurnaceCache = new ConcurrentHashMap<>();
-    public static final ConcurrentHashMap<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
+    public static final Map<Long, Boolean> slimeChunkCache = new HashMap<>();
 
     public HudOverlay() {
         client = Minecraft.getInstance();
@@ -99,7 +101,7 @@ public class HudOverlay implements HudElement {
         renderFurnaceInfo(drawContext);
     }
 
-    private void renderFurnaceInfo(GuiGraphicsExtractor drawContext) {
+    private void renderFurnaceInfo(GuiGraphicsExtractor ctx) {
         if (!config.showFurnaceInfo) return;
         if (client.level == null || client.hitResult == null) return;
         if (client.hitResult.getType() != HitResult.Type.BLOCK) return;
@@ -159,38 +161,38 @@ public class HudOverlay implements HudElement {
         int panelX = (screenWidth - panelWidth) / 2;
         int panelY = screenHeight / 2 + 40;
 
-        drawContext.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xC0000000);
-        drawContext.fill(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFAAAAAA);
-        drawContext.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
-        drawContext.fill(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFAAAAAA);
-        drawContext.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
+        ctx.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight, 0xC0000000);
+        ctx.fill(panelX, panelY, panelX + panelWidth, panelY + 1, 0xFFAAAAAA);
+        ctx.fill(panelX, panelY + panelHeight - 1, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
+        ctx.fill(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFAAAAAA);
+        ctx.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
 
         Component title = Component.translatable("gameinfo.hud.furnace.title");
-        drawContext.centeredText(textRenderer, title, panelX + panelWidth / 2, panelY + 5, getMainColor());
+        ctx.centeredText(textRenderer, title, panelX + panelWidth / 2, panelY + 5, getMainColor());
 
         int rowX = panelX + 8;
         int rowY = panelY + 22;
-        drawFurnaceRow(drawContext, input,  "gameinfo.hud.furnace.input",  rowX, rowY);
+        drawFurnaceRow(ctx, input,  "gameinfo.hud.furnace.input",  rowX, rowY);
         rowY += 18;
-        drawFurnaceRow(drawContext, fuel,   "gameinfo.hud.furnace.fuel",   rowX, rowY);
+        drawFurnaceRow(ctx, fuel,   "gameinfo.hud.furnace.fuel",   rowX, rowY);
         rowY += 18;
-        drawFurnaceRow(drawContext, output, "gameinfo.hud.furnace.output", rowX, rowY);
+        drawFurnaceRow(ctx, output, "gameinfo.hud.furnace.output", rowX, rowY);
     }
 
-    private void drawFurnaceRow(GuiGraphicsExtractor drawContext, ItemStack stack, String labelKey, int x, int y) {
+    private void drawFurnaceRow(GuiGraphicsExtractor ctx, ItemStack stack, String labelKey, int x, int y) {
         Component label = Component.translatable(labelKey);
-        drawContext.text(textRenderer, label, x, y + 4, getMainColor(), true);
+        ctx.text(textRenderer, label, x, y + 4, getMainColor(), true);
         int labelWidth = textRenderer.width(label);
 
         int itemX = x + labelWidth + 6;
         if (!stack.isEmpty()) {
-            drawContext.item(stack, itemX, y);
+            ctx.item(stack, itemX, y);
             String name = stack.getHoverName().getString();
             int count = stack.getCount();
             String text = count > 1 ? name + " x" + count : name;
-            drawContext.text(textRenderer, Component.literal(text), itemX + 20, y + 5, getDefaultColor(), true);
+            ctx.text(textRenderer, Component.literal(text), itemX + 20, y + 5, getDefaultColor(), true);
         } else {
-            drawContext.text(textRenderer, Component.translatable("gameinfo.hud.furnace.empty"), itemX, y + 5, 0xFF808080, true);
+            ctx.text(textRenderer, Component.translatable("gameinfo.hud.furnace.empty"), itemX, y + 5, 0xFF808080, true);
         }
     }
 
@@ -317,25 +319,22 @@ public class HudOverlay implements HudElement {
 
     private boolean isSlimeChunk(BlockPos pos) {
         if (client.level == null) return false;
+        if (!client.level.dimension().equals(Level.OVERWORLD)) return false;
 
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-        long chunkKey = chunkKey(chunkX, chunkZ);
+        long chunkKey = ((long) chunkX & 0xFFFFFFFFL) | (((long) chunkZ & 0xFFFFFFFFL) << 32);
 
         if (client.hasSingleplayerServer()) {
             var server = client.getSingleplayerServer();
             if (server != null) {
                 long seed = server.overworld().getSeed();
-                if (seed != 0L) {
-                    return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
-                }
+                if (seed == 0L) return false;
+                return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
             }
         }
-        return slimeChunkCache.getOrDefault(chunkKey, false);
-    }
 
-    private long chunkKey(int x, int z) {
-        return (long) x & 0xFFFFFFFFL | ((long) z & 0xFFFFFFFFL) << 32;
+        return slimeChunkCache.getOrDefault(chunkKey, false);
     }
 
     private int renderNetherCoordinates(GuiGraphicsExtractor drawContext, int x, int y) {
@@ -345,12 +344,12 @@ public class HudOverlay implements HudElement {
         Level world = player.level();
         BlockPos pos = player.blockPosition();
 
-        String coordinateText;
-        String labelKey;
-        if (world.dimension().identifier().equals(Level.OVERWORLD.identifier())) {
+        String coordinateText = "";
+        String labelKey = "";
+        if (world.dimension().equals(Level.OVERWORLD)) {
             coordinateText = String.format("%d %d", pos.getX() / 8, pos.getZ() / 8);
             labelKey = "gameinfo.hud.nether";
-        } else if (world.dimension().identifier().equals(Level.NETHER.identifier())) {
+        } else if (world.dimension().equals(Level.NETHER)) {
             coordinateText = String.format("%d %d", pos.getX() * 8, pos.getZ() * 8);
             labelKey = "gameinfo.hud.overworld";
         } else {
