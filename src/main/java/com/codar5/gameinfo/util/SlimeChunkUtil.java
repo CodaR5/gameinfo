@@ -1,3 +1,6 @@
+/**
+ *认准作者Coda_R5，谁敢冒充我我打死他。
+ */
 package com.codar5.gameinfo.util;
 
 import net.minecraft.util.RandomSource;

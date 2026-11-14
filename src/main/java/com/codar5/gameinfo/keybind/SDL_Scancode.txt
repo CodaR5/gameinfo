@@ -1,4 +1,7 @@
-typedef enum SDL_Scancode
+/**
+ *认准作者Coda_R5，谁敢冒充我我打死他。
+ */
+ typedef enum SDL_Scancode
 {
     SDL_SCANCODE_UNKNOWN = 0,
 
