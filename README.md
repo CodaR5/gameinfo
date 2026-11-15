@@ -1,60 +1,23 @@
 # GameInfo Unofficial Port
 
-GameInfo Unofficial Port 是 ifcifc 原版 GameInfo 的非官方移植版。原版仓库在 [GitLab](https://gitlab.com/ifcifc94/gameinfo-mod)，本仓库不是原作者维护，也不是官方分支。
+**自 v3.1.6（v4.0.8.alpha）后的所有版本将由 CR0 更新，非 Coda_R5，可能做得不好，如有 bug 请提交到 issues，感谢您珍贵的 bug 回馈。**
+
+GameInfo Unofficial Port 是 ifcifc 原版 GameInfo 的非官方移植版。不是原作者维护，也不是官方版本。
 
 > **版权与来源声明**
 > 本项目基于 basketikun、ifcifc 的 gameinfo 早期版本开发，针对高版本 Minecraft 进行了代码适配、重构与功能扩展。
 > 原始代码版权归原作者所有。**本项目对原始代码的修改部分依据 GNU LGPL-3.0 许可证开源。** 
 > 如您是原作者且不希望此项目继续分发，请联系我，我将立即删除相关代码及发布物。
 
-模组提供 FPS、坐标显示、准星方块与实体检测、熔炉数据同步、史莱姆区块判定、可滚动配置界面以及客户端与服务端之间的网络通信。客户端必须安装；服务端可选安装，安装后部分功能才完整。
+--------------------------------------
 
-## 功能
+# GameInfo Unofficial Port
 
-HUD 显示项均可单独开关：
-- FPS
-- 游戏天数与游戏内时间
-- 当前坐标与朝向
-- 当前生物群系
-- 下界坐标转换：主世界显示 `N-XZ`（坐标 / 8），下界显示 `O-XZ`（坐标 × 8）
-- 右侧装备耐久
-- 右上角版本号，可自定义，也可跟随游戏版本
-- 准星指向的方块信息
-- 准星指向的实体血量
-- 准星指向熔炉或打开熔炉时，显示输入、燃料、输出槽的物品
-- 坐标行后的 `- Slime Chunk` 标记，显示为绿色
-- 纯净服务端种子设定, 如果伺服器已安装, 可忽略, 它会自动获取.
+**All versions after v3.1.6 (4.0.8.alpha) will be updated by CR0, not Coda_R5, and may not be perfect. If there are any bugs, please submit them to issues. Thank you for your valuable bug feedback.**
 
-**按键与命令：**
-- `U`：打开配置界面
-- `/gameinfo`：模组主命令
-- `/chunk`：区块管理命令，支持 `load`、`unload`、`list`、`check`
-- `/giseed`：管理你的游戏种子, 可以`show`、`set`、`clear`
+GameInfo Unofficial Port is an unofficial port of ifcifc's original GameInfo. It is not maintained by the original author and is not an official version.
 
-配置界面为单页滚动布局。配置分为基础信息、高级信息、自定义位置与颜色三组。安装 Mod Menu 后可从 Mod Menu 直接打开。
-
-## 安装
-
-需要 Fabric Loader 和 Fabric API。支持的游戏版本以 [Modrinth](https://modrinth.com/mod/gameinfo) 页面为准。
-
-- **客户端安装**：将对应版本的 `.jar` 放入 `.minecraft/mods/` 后启动游戏。
-- **服务端安装（可选但建议）**：安装后，熔炉数据由服务端实时扫描并同步，可避免客户端数据延迟；多人游戏中的史莱姆区块由服务端计算并下发结果，不向客户端暴露世界种子。服务端未安装本模组时，客户端不会崩溃，史莱姆区块在多人模式下不显示，熔炉数据将使用缓存。单机模式下史莱姆区块由本地计算，不依赖服务端。
-
-## 配置
-
-配置文件位于 `config/gameinfo.properties`，包含全局开关、颜色、位置以及各功能独立开关。游戏内按 `U` 也可直接修改，修改后即时生效。
-
-## 多语言
-
-内置 2 种语言：英语、简体中文。
-
-## 构建
-
-需要 JDK 25。在项目根目录执行：
-
-```bash
-# Windows
-gradlew.bat build
-
-# macOS / Linux
-./gradlew build
+> **Copyright and Source Notice**
+> This project is developed based on early versions of gameinfo by basketikun and ifcifc, with code adaptation, refactoring, and feature expansion for higher Minecraft versions.
+> The copyright of the original code belongs to the original authors. **The modifications to the original code in this project are open-sourced under the GNU LGPL-3.0 license.**
+> If you are the original author and do not wish this project to continue being distributed, please contact me, and I will immediately delete the relevant code and releases.
