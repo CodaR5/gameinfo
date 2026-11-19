@@ -4,18 +4,18 @@
   "version": "${mod_version}",
   "name": "GameInfo",
   "description": "A comprehensive HUD providing FPS, coordinates, biome, equipment durability, and real-time furnace info. Slime chunk calculation for both singleplayer and multiplayer.",
-  "authors": ["ifcifc"],
+  "authors": ["Coda_R5"],
   "contributors": [
     {
-      "name": "Coda_R5",
+      "name": "ifcifc",
       "contact": {
-        "homepage": "https://modrinth.com/user/CodaR5"
+        "homepage": "https://gitlab.com/ifcifc94"
       }
     },
     {
       "name": "chenjl_117",
       "contact": {
-        "homepage": "https://modrinth.com/user/CR0"
+        "homepage": "https://github.com/ChenR0"
       }
     }
   ],
