@@ -1,11 +1,14 @@
+/**
+ *认准作者Coda_R5，谁敢冒充我我打死他。
+ */
 package com.codar5.gameinfo.hud;
 
 import com.codar5.gameinfo.GameinfoClient;
 import com.codar5.gameinfo.config.GameInfoConfig;
+import com.codar5.gameinfo.network.WorldSeedStore;
 import com.codar5.gameinfo.renderer.FurnaceDataCache;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,9 +46,9 @@ public class HudOverlay implements HudElement {
     static GameInfoConfig config;
 
     private static final int SLIME_CHUNK_COLOR = 0xFF55FF55;
-
+    
     public static final ConcurrentHashMap<BlockPos, ItemStack[]> serverFurnaceCache = new ConcurrentHashMap<>();
-    public static final Map<Long, Boolean> slimeChunkCache = new HashMap<>();
+    public static final Map<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
 
     public HudOverlay() {
         client = Minecraft.getInstance();
@@ -53,16 +56,15 @@ public class HudOverlay implements HudElement {
         config = GameinfoClient.config;
     }
 
-    static EquipmentSlot[] armorSlots = {EquipmentSlot.OFFHAND, EquipmentSlot.MAINHAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD,};
+    static EquipmentSlot[] armorSlots = {EquipmentSlot.OFFHAND, EquipmentSlot.MAINHAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
 
     public void toggleHudVisibility() {
-        GameInfoConfig config = GameinfoClient.config;
         config.enabled = !config.enabled;
         config.saveConfig();
     }
 
     public static void logger(String message) {
-        System.out.println("[DEBUG]： " + message);
+        System.out.println("[DEBUG]: " + message);
     }
 
     private int getMainColor() {
@@ -107,25 +109,24 @@ public class HudOverlay implements HudElement {
         if (client.hitResult.getType() != HitResult.Type.BLOCK) return;
 
         BlockPos pos = ((BlockHitResult) client.hitResult).getBlockPos().immutable();
-
         if (!(client.level.getBlockState(pos).getBlock() instanceof AbstractFurnaceBlock)) return;
 
-        ItemStack input  = ItemStack.EMPTY;
-        ItemStack fuel   = ItemStack.EMPTY;
+        ItemStack input = ItemStack.EMPTY;
+        ItemStack fuel = ItemStack.EMPTY;
         ItemStack output = ItemStack.EMPTY;
         boolean gotData = false;
 
         ItemStack[] cached = serverFurnaceCache.get(pos);
         if (cached != null) {
-            input  = cached[0];
-            fuel   = cached[1];
+            input = cached[0];
+            fuel = cached[1];
             output = cached[2];
             gotData = true;
         }
 
         if (!gotData && client.level.getBlockEntity(pos) instanceof AbstractFurnaceBlockEntity clientFurnace) {
-            input  = clientFurnace.getItem(0);
-            fuel   = clientFurnace.getItem(1);
+            input = clientFurnace.getItem(0);
+            fuel = clientFurnace.getItem(1);
             output = clientFurnace.getItem(2);
             if (!input.isEmpty() || !fuel.isEmpty() || !output.isEmpty()) {
                 gotData = true;
@@ -135,8 +136,8 @@ public class HudOverlay implements HudElement {
         if (!gotData) {
             FurnaceDataCache.FurnaceItems fc = FurnaceDataCache.getFurnaceData(pos);
             if (fc != null) {
-                input  = fc.input;
-                fuel   = fc.fuel;
+                input = fc.input;
+                fuel = fc.fuel;
                 output = fc.output;
             }
         }
@@ -147,8 +148,8 @@ public class HudOverlay implements HudElement {
                 ItemStack m1 = menu.getSlot(1).getItem();
                 ItemStack m2 = menu.getSlot(2).getItem();
                 FurnaceDataCache.updateFurnaceData(pos, m0, m1, m2);
-                input  = m0;
-                fuel   = m1;
+                input = m0;
+                fuel = m1;
                 output = m2;
             } catch (Exception ignored) {
             }
@@ -172,9 +173,9 @@ public class HudOverlay implements HudElement {
 
         int rowX = panelX + 8;
         int rowY = panelY + 22;
-        drawFurnaceRow(ctx, input,  "gameinfo.hud.furnace.input",  rowX, rowY);
+        drawFurnaceRow(ctx, input, "gameinfo.hud.furnace.input", rowX, rowY);
         rowY += 18;
-        drawFurnaceRow(ctx, fuel,   "gameinfo.hud.furnace.fuel",   rowX, rowY);
+        drawFurnaceRow(ctx, fuel, "gameinfo.hud.furnace.fuel", rowX, rowY);
         rowY += 18;
         drawFurnaceRow(ctx, output, "gameinfo.hud.furnace.output", rowX, rowY);
     }
@@ -183,8 +184,8 @@ public class HudOverlay implements HudElement {
         Component label = Component.translatable(labelKey);
         ctx.text(textRenderer, label, x, y + 4, getMainColor(), true);
         int labelWidth = textRenderer.width(label);
-
         int itemX = x + labelWidth + 6;
+
         if (!stack.isEmpty()) {
             ctx.item(stack, itemX, y);
             String name = stack.getHoverName().getString();
@@ -200,6 +201,7 @@ public class HudOverlay implements HudElement {
         if (!config.showEquipment) return;
         LocalPlayer player = client.player;
         if (player == null || client.gui.hud.isHidden()) return;
+
         int screenWidth = client.getWindow().getGuiScaledWidth();
         int screenHeight = client.getWindow().getGuiScaledHeight();
         int startX = screenWidth / 2 + 91 + 10;
@@ -210,6 +212,7 @@ public class HudOverlay implements HudElement {
             ItemStack stack = durableItems.get(i);
             int currentY = startY - (i * 20);
             drawContext.item(stack, startX, currentY);
+
             int maxDamage = stack.getMaxDamage();
             int durability = stack.getMaxDamage() - stack.getDamageValue();
             String durabilityText = String.format("%d/%d", durability, maxDamage);
@@ -221,19 +224,22 @@ public class HudOverlay implements HudElement {
 
     private static @NotNull List<ItemStack> getShowItemStacks(LocalPlayer player) {
         List<ItemStack> durableItems = new ArrayList<>();
-        long currentTime = System.currentTimeMillis();
-
+        
         for (EquipmentSlot slot : armorSlots) {
             ItemStack stack = player.getItemBySlot(slot);
             if (stack.isEmpty() || !stack.isDamageableItem()) {
-                DurabilityRecord.durabilityTracker.remove(slot);
                 continue;
             }
             if (DurabilityRecord.hasExperienceMending(stack)) {
-                DurabilityRecord.durabilityTracker.remove(slot);
                 continue;
             }
-            if (DurabilityRecord.hasDurabilityChangedRecently(slot, stack, currentTime)) {
+            
+            boolean isHand = (slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND);
+            if (isHand) {
+                if (stack.getDamageValue() > 0) {
+                    durableItems.add(stack);
+                }
+            } else {
                 durableItems.add(stack);
             }
         }
@@ -249,6 +255,7 @@ public class HudOverlay implements HudElement {
         } else {
             versionValue = SharedConstants.getCurrentVersion().name();
         }
+
         int y = 2;
         int x = client.getWindow().getGuiScaledWidth() - textRenderer.width(versionLabel) - textRenderer.width(versionValue) - 2;
         drawContext.text(textRenderer, versionLabel, x, y, getMainColor(), true);
@@ -262,9 +269,7 @@ public class HudOverlay implements HudElement {
         Component fpsLabel = Component.translatable("gameinfo.hud.fps");
         drawContext.text(textRenderer, fpsLabel, x, y, getMainColor(), true);
         int width = textRenderer.width(fpsLabel);
-        Component fpsValue = Component.literal(fps == -1
-                ? Component.translatable("gameinfo.hud.unknown").getString()
-                : String.valueOf(fps));
+        Component fpsValue = Component.literal(fps == -1 ? Component.translatable("gameinfo.hud.unknown").getString() : String.valueOf(fps));
         drawContext.text(textRenderer, fpsValue, x + width, y, getDefaultColor(), true);
         return DEFAULT_HEIGHT;
     }
@@ -313,7 +318,6 @@ public class HudOverlay implements HudElement {
             Component slimeText = Component.literal(" - ").append(Component.translatable("gameinfo.hud.slime_chunk"));
             drawContext.text(textRenderer, slimeText, x + width + xyzWidth, y, SLIME_CHUNK_COLOR, true);
         }
-
         return DEFAULT_HEIGHT;
     }
 
@@ -323,17 +327,13 @@ public class HudOverlay implements HudElement {
 
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-        long chunkKey = ((long) chunkX & 0xFFFFFFFFL) | (((long) chunkZ & 0xFFFFFFFFL) << 32);
-
-        if (client.hasSingleplayerServer()) {
-            var server = client.getSingleplayerServer();
-            if (server != null) {
-                long seed = server.overworld().getSeed();
-                if (seed == 0L) return false;
-                return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
-            }
+        
+        long seed = WorldSeedStore.resolve();
+        if (seed != 0L) {
+            return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
         }
 
+        long chunkKey = ((long) chunkX & 0xFFFFFFFFL) | (((long) chunkZ & 0xFFFFFFFFL) << 32);
         return slimeChunkCache.getOrDefault(chunkKey, false);
     }
 
@@ -343,9 +343,9 @@ public class HudOverlay implements HudElement {
         if (player == null) return 0;
         Level world = player.level();
         BlockPos pos = player.blockPosition();
-
         String coordinateText = "";
         String labelKey = "";
+
         if (world.dimension().equals(Level.OVERWORLD)) {
             coordinateText = String.format("%d %d", pos.getX() / 8, pos.getZ() / 8);
             labelKey = "gameinfo.hud.nether";
@@ -372,6 +372,7 @@ public class HudOverlay implements HudElement {
 
         Holder<Biome> biomeEntry = world.getBiome(pos);
         Identifier biomeId = biomeEntry.unwrapKey().map(ResourceKey::identifier).orElse(null);
+
         String biomeName;
         if (biomeId == null) {
             biomeName = Component.translatable("gameinfo.hud.unknown_biome").getString();
@@ -379,6 +380,7 @@ public class HudOverlay implements HudElement {
             String translationKey = "biome." + biomeId.getNamespace() + "." + biomeId.getPath();
             biomeName = Component.translatable(translationKey).getString();
         }
+
         Component biomeLabel = Component.translatable("gameinfo.hud.biome");
         drawContext.text(textRenderer, biomeLabel, x, y, getMainColor(), true);
         int width = textRenderer.width(biomeLabel);
@@ -392,6 +394,7 @@ public class HudOverlay implements HudElement {
             direction = client.player.getDirection();
         }
         if (direction == null) return Component.translatable("gameinfo.direction.unknown").getString();
+
         String key = switch (direction) {
             case NORTH -> "gameinfo.direction.north";
             case SOUTH -> "gameinfo.direction.south";
