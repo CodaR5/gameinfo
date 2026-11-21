@@ -1,18 +1,43 @@
 {
   "schemaVersion": 1,
   "id": "gameinfo",
-  "version": "${version}",
+  "version": "${mod_version}",
   "name": "GameInfo",
-  "description": "A comprehensive HUD providing FPS, coordinates, biome, equipment durability, and real-time furnace info. Features safe slime chunk calculation for both singleplayer and multiplayer without leaking server seeds.",
-  "authors": ["ifcifc","chenjl_117","Coda_R5"],
+  "description": "A comprehensive HUD providing FPS, coordinates, biome, equipment durability, and real-time furnace info. Slime chunk calculation for both singleplayer and multiplayer.",
+  "authors": ["Coda_R5"],
+  "contributors": [
+    {
+      "name": "ifcifc",
+      "contact": {
+        "homepage": "https://gitlab.com/ifcifc94"
+      }
+    },
+    {
+      "name": "chenjl_117",
+      "contact": {
+        "homepage": "https://github.com/ChenR0"
+      }
+    }
+  ],
+  "license": "LGPL-3.0-or-later",
+  "environment": "*",
+  "icon": "assets/gameinfo/icon.png",
   "contact": {
     "homepage": "https://modrinth.com/mod/gameinfo",
     "sources": "https://github.com/CodaR5/gameinfo",
     "issues": "https://github.com/CodaR5/gameinfo/issues"
   },
-  "license": "LGPL-3.0-or-later",
-  "icon": "assets/gameinfo/icon.png",
-  "environment": "*",
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "$(minecraft_version)"
+  },
+  "suggests": {
+    "modmenu": "*"
+  },
+  "breaks": {
+    "minihud": "*"
+  },
   "entrypoints": {
     "client": [
       "com.codar5.gameinfo.GameinfoClient"
@@ -23,13 +48,5 @@
     "modmenu": [
       "com.codar5.gameinfo.gui.ModMenuIntegration"
     ]
-  },
-  "depends": {
-    "fabricloader": ">=${loader_version}",
-    "fabric-api": "*",
-    "minecraft": "${minecraft_version}"
-  },
-  "suggests": {
-    "modmenu": "*"
   }
 }
