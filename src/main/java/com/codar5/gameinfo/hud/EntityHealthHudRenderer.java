@@ -43,14 +43,19 @@ public class EntityHealthHudRenderer implements HudElement {
         
         float health = livingEntity.getHealth();
         float maxHealth = livingEntity.getMaxHealth();
-        
-        float displayHealth = (float) (Math.ceil(health * 2.0) / 2.0);
-        if (displayHealth > maxHealth) displayHealth = maxHealth;
+        String healthInfo;
 
-        String healthStr = (displayHealth % 1.0f == 0.0f) ? String.valueOf((int) displayHealth) : String.valueOf(displayHealth);
-        String maxHealthStr = (maxHealth % 1.0f == 0.0f) ? String.valueOf((int) maxHealth) : String.valueOf(maxHealth);
+        if (health > 1000.0f || maxHealth > 1000.0f) {
+            healthInfo = "血量: NAN";
+        } else {
+            float displayHealth = (float) (Math.ceil(health * 2.0) / 2.0);
+            if (displayHealth > maxHealth) displayHealth = maxHealth;
 
-        String healthInfo = String.format("血量: %s/%s", healthStr, maxHealthStr);
+            String healthStr = (displayHealth % 1.0f == 0.0f) ? String.valueOf((int) displayHealth) : String.valueOf(displayHealth);
+            String maxHealthStr = (maxHealth % 1.0f == 0.0f) ? String.valueOf((int) maxHealth) : String.valueOf(maxHealth);
+
+            healthInfo = String.format("血量: %s/%s", healthStr, maxHealthStr);
+        }
         
         int screenWidth = client.getWindow().getGuiScaledWidth();
 
@@ -113,6 +118,10 @@ public class EntityHealthHudRenderer implements HudElement {
     }
 
     private int getHealthColor(float health, float maxHealth) {
+        if (health > 1000.0f || maxHealth > 1000.0f) {
+            return 0xFFAA00AA;
+        }
+        
         float healthPercentage = health / maxHealth;
         
         if (healthPercentage > 0.6f) {
@@ -126,10 +135,15 @@ public class EntityHealthHudRenderer implements HudElement {
 
     private void renderHealthBar(GuiGraphicsExtractor drawContext, float health, float maxHealth, int x, int y, int width) {
         int barHeight = 3;
-        float healthPercentage = health / maxHealth;
         
         drawContext.fill(x, y, x + width, y + barHeight, 0xFF333333);
         
+        if (health > 1000.0f || maxHealth > 1000.0f) {
+            drawContext.fill(x, y, x + width, y + barHeight, 0xFFAA00AA);
+            return;
+        }
+
+        float healthPercentage = health / maxHealth;
         int healthWidth = (int) (width * healthPercentage);
         int healthColor = getHealthColor(health, maxHealth);
         drawContext.fill(x, y, x + healthWidth, y + barHeight, healthColor);
