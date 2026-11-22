@@ -231,9 +231,6 @@ public class HudOverlay implements HudElement {
             if (stack.isEmpty() || !stack.isDamageableItem()) {
                 continue;
             }
-            if (DurabilityRecord.hasExperienceMending(stack)) {
-                continue;
-            }
             
             boolean isHand = (slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND);
             if (isHand) {
