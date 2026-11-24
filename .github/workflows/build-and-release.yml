@@ -81,17 +81,18 @@ jobs:
           github-generate-changelog: true
           name: GameInfo ${{ github.ref_name }}
 
-          modrinth-id: ${{ !contains(github.ref_name, 'alpha') && 'evkHqczD' || '' }}
-          modrinth-token: ${{ !contains(github.ref_name, 'alpha') && secrets.MODRINTH_TOKEN || '' }}
+          modrinth-id: ${{ !(contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'pre') || contains(github.ref_name, 'dev') || contains(github.ref_name, 'test') || contains(github.ref_name, 'snapshot')) && 'evkHqczD' || '' }}
+          
+          modrinth-token: ${{ !(contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'pre') || contains(github.ref_name, 'dev') || contains(github.ref_name, 'test') || contains(github.ref_name, 'snapshot')) && secrets.MODRINTH_TOKEN || '' }}
+          
           modrinth-featured: true
 
           files: dist/*.jar
           version: ${{ github.ref_name }}
-          version-type: ${{ contains(github.ref_name, 'alpha') && 'alpha' || 'release' }}
+          version-type: ${{ (contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'pre')) && 'beta' || 'release' }}
 
           loaders: fabric
 
-          game-versions: |
-            26.4-snapshot
+          game-versions: "26.4-snapshot" 
             
           java: 25 
