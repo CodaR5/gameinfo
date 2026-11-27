@@ -1,6 +1,8 @@
+/**
+ *认准作者Coda_R5，谁敢冒充我我打死他。
+ */
 package com.codar5.gameinfo.hud;
 
-import com.codar5.gameinfo.GameInfoNeoForge;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -20,7 +22,7 @@ public class EntityHealthHudRenderer implements GuiLayer {
 
     @Override
     public void render(GuiGraphicsExtractor drawContext, DeltaTracker tickCounter) {
-        if (!GameInfoNeoForge.config.showEntityInfo) return;
+        if (!com.codar5.gameinfo.GameInfoNeoForge.config.showEntityInfo) return;
 
         Minecraft client = Minecraft.getInstance();
         if (client == null || client.level == null || client.player == null) return;
@@ -38,9 +40,22 @@ public class EntityHealthHudRenderer implements GuiLayer {
         if (!(entity instanceof LivingEntity livingEntity)) return;
 
         String entityName = entity.getName().getString();
+
         float health = livingEntity.getHealth();
         float maxHealth = livingEntity.getMaxHealth();
-        String healthInfo = String.format("血量: %.1f/%.1f", health, maxHealth);
+        String healthInfo;
+
+        if (health > 1000.0f || maxHealth > 1000.0f) {
+            healthInfo = "血量: NAN";
+        } else {
+            float displayHealth = (float) (Math.ceil(health * 2.0) / 2.0);
+            if (displayHealth > maxHealth) displayHealth = maxHealth;
+
+            String healthStr = (displayHealth % 1.0f == 0.0f) ? String.valueOf((int) displayHealth) : String.valueOf(displayHealth);
+            String maxHealthStr = (maxHealth % 1.0f == 0.0f) ? String.valueOf((int) maxHealth) : String.valueOf(maxHealth);
+
+            healthInfo = String.format("血量: %s/%s", healthStr, maxHealthStr);
+        }
 
         int screenWidth = client.getWindow().getGuiScaledWidth();
 
@@ -81,6 +96,7 @@ public class EntityHealthHudRenderer implements GuiLayer {
         ItemStack displayItem = getEntityDisplayItem(entity);
 
         drawContext.item(displayItem, itemX, itemY);
+
         drawContext.text(client.font, nameText, nameTextX, nameY, 0xFFFFFFFF, true);
 
         int healthColor = getHealthColor(health, maxHealth);
@@ -102,6 +118,10 @@ public class EntityHealthHudRenderer implements GuiLayer {
     }
 
     private int getHealthColor(float health, float maxHealth) {
+        if (health > 1000.0f || maxHealth > 1000.0f) {
+            return 0xFFAA00AA;
+        }
+
         float healthPercentage = health / maxHealth;
 
         if (healthPercentage > 0.6f) {
@@ -115,10 +135,15 @@ public class EntityHealthHudRenderer implements GuiLayer {
 
     private void renderHealthBar(GuiGraphicsExtractor drawContext, float health, float maxHealth, int x, int y, int width) {
         int barHeight = 3;
-        float healthPercentage = health / maxHealth;
 
         drawContext.fill(x, y, x + width, y + barHeight, 0xFF333333);
 
+        if (health > 1000.0f || maxHealth > 1000.0f) {
+            drawContext.fill(x, y, x + width, y + barHeight, 0xFFAA00AA);
+            return;
+        }
+
+        float healthPercentage = health / maxHealth;
         int healthWidth = (int) (width * healthPercentage);
         int healthColor = getHealthColor(health, maxHealth);
         drawContext.fill(x, y, x + healthWidth, y + barHeight, healthColor);

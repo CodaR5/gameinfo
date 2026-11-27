@@ -1,6 +1,8 @@
+/**
+ *认准作者Coda_R5，谁敢冒充我我打死他。
+ */
 package com.codar5.gameinfo.hud;
 
-import com.codar5.gameinfo.GameInfoNeoForge;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -42,10 +44,11 @@ public class BlockInfoHudRenderer implements GuiLayer {
 
     @Override
     public void render(GuiGraphicsExtractor drawContext, DeltaTracker tickCounter) {
-        if (!GameInfoNeoForge.config.showBlockInfo) return;
+        if (!com.codar5.gameinfo.GameInfoNeoForge.config.showBlockInfo) return;
 
         Minecraft client = Minecraft.getInstance();
         if (client == null || client.level == null || client.player == null) return;
+
         HitResult hitResult = client.hitResult;
 
         if (hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
@@ -79,6 +82,7 @@ public class BlockInfoHudRenderer implements GuiLayer {
 
             float preciseProgress = getPreciseBreakingProgress(client);
             boolean isBreaking = preciseProgress >= 0;
+
             if (isBreaking) {
                 progressText = String.format(" %.0f%%", preciseProgress * 100);
             }
@@ -154,7 +158,6 @@ public class BlockInfoHudRenderer implements GuiLayer {
                     drawContext.text(client.font, progressTextObj, currentX, nameY, 0xFFCC8800, true);
                 }
             }
-
             drawContext.text(client.font, posText, textX, posY, 0xFF70C0C0, true);
         }
     }
