@@ -11,8 +11,6 @@ import com.codar5.gameinfo.gui.GameInfoConfigScreen;
 import com.codar5.gameinfo.hud.BlockInfoHudRenderer;
 import com.codar5.gameinfo.hud.EntityHealthHudRenderer;
 import com.codar5.gameinfo.hud.HudOverlay;
-import com.codar5.gameinfo.network.GameInfoNetwork;
-import com.codar5.gameinfo.network.SlimeChunkSyncPayload;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import com.codar5.gameinfo.util.UpdateChecker;
 import net.minecraft.client.Minecraft;
@@ -98,7 +96,7 @@ public class GameInfoNeoForge {
                 long seed = event.getServer().overworld().getSeed();
                 if (seed == 0L) continue;
                 boolean isSlime = SlimeChunkUtil.isSlimeChunk(seed, cx, cz);
-                PacketDistributor.sendToPlayer(player, new SlimeChunkSyncPayload(cx, cz, isSlime));
+                PacketDistributor.sendToPlayer(player, new com.codar5.gameinfo.network.SlimeChunkSyncPayload(cx, cz, isSlime));
             }
         }
     }
