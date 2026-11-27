@@ -5,7 +5,6 @@ package com.codar5.gameinfo.util;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
@@ -18,10 +17,7 @@ import java.time.Duration;
 public class UpdateChecker {
     private static final String MOD_ID = "gameinfo";
     private static final String GITHUB_API_URL = "https://api.github.com/repos/CodaR5/gameinfo/releases/latest";
-    private static final String CURRENT_VERSION = FabricLoader.getInstance()
-            .getModContainer(MOD_ID)
-            .map(container -> container.getMetadata().getVersion().getFriendlyString())
-            .orElse("unknown");
+    private static final String CURRENT_VERSION = "4.0.8.alpha";
 
     public static void checkForUpdates() {
         HttpClient client = HttpClient.newBuilder()
@@ -49,7 +45,7 @@ public class UpdateChecker {
         try {
             Gson gson = new Gson();
             JsonObject json = gson.fromJson(responseBody, JsonObject.class);
-
+            
             if (json != null && json.has("tag_name")) {
                 String latestVersion = json.get("tag_name").getAsString();
                 String htmlUrl = json.get("html_url").getAsString();
@@ -57,7 +53,7 @@ public class UpdateChecker {
                 if (isNewerVersion(latestVersion, CURRENT_VERSION)) {
                     String message = String.format("§e[GameInfo] §a发现新版本! §7当前: %s §7-> §a最新: %s\n§b下载链接: %s",
                             CURRENT_VERSION, latestVersion, htmlUrl);
-
+                    
                     Minecraft.getInstance().execute(() -> {
                         if (Minecraft.getInstance().player != null) {
                             Minecraft.getInstance().player.sendSystemMessage(Component.literal(message));
@@ -73,7 +69,7 @@ public class UpdateChecker {
     private static boolean isNewerVersion(String latest, String current) {
         String latestClean = latest.replaceFirst("^[vV]", "");
         String currentClean = current.replaceFirst("^[vV]", "");
-
+        
         try {
             String[] latestParts = latestClean.split("[.-]");
             String[] currentParts = currentClean.split("[.-]");
@@ -82,7 +78,7 @@ public class UpdateChecker {
             for (int i = 0; i < length; i++) {
                 int latestPart = i < latestParts.length ? parseIntSafe(latestParts[i]) : 0;
                 int currentPart = i < currentParts.length ? parseIntSafe(currentParts[i]) : 0;
-
+                
                 if (latestPart > currentPart) return true;
                 if (latestPart < currentPart) return false;
             }
