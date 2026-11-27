@@ -35,9 +35,6 @@
   "suggests": {
     "modmenu": "*"
   },
-  "breaks": {
-    "minihud": "*"
-  },
   "entrypoints": {
     "client": [
       "com.codar5.gameinfo.GameinfoClient"
