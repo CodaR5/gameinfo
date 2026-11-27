@@ -3,7 +3,7 @@
  */
 package com.codar5.gameinfo.gui;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -57,7 +57,7 @@ public class PonderScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         long elapsed = System.currentTimeMillis() - this.startTime;
         float rawProgress = (float) elapsed / ANIM_DURATION;
         rawProgress = Math.max(0.0f, Math.min(1.0f, rawProgress));
@@ -73,30 +73,30 @@ public class PonderScreen extends Screen {
         int stageY = centerY - 20;
 
         var poseStack = context.pose();
-        poseStack.pushPose();
-        poseStack.translate(0, translateY, 0);
+        poseStack.pushMatrix();
+        poseStack.translate(0, translateY);
 
         context.fill(splitPoint, 0, splitPoint + 2, this.height, 0x60FFFFFF);
         context.fill(stageX - 40, stageY - 40, stageX + 40, stageY + 40, 0x80000000);
         context.fill(stageX - 40, stageY + 40, stageX + 40, stageY + 42, 0xFFFFD700);
 
         if (this.cachedIcon != null) {
-            poseStack.pushPose();
-            poseStack.translate(stageX, stageY, 0);
+            poseStack.pushMatrix();
+            poseStack.translate(stageX, stageY);
             float iconScale = 2.5f + (1.5f * ease);
-            poseStack.scale(iconScale, iconScale, 1.0f);
-            context.item(this.cachedIcon, -8, -8);
-            poseStack.popPose();
+            poseStack.scale(iconScale, iconScale);
+            context.renderItem(this.cachedIcon, -8, -8);
+            poseStack.popMatrix();
         }
 
         int titleColor = ((int) (255 * ease) << 24) | 0xFFD700;
-        context.centeredText(this.font, this.topic.title, stageX, stageY + 55, titleColor);
+        context.drawCenteredString(this.font, this.topic.title, stageX, stageY + 55, titleColor);
 
         int textX = splitPoint + 40;
         int textY = 60;
-
+        
         int descAlpha = (int) (255 * ease);
-        context.text(this.font, Component.translatable("ponder.gameinfo.ui.description"), textX, textY, (descAlpha << 24) | 0xAAAAAA, true);
+        context.drawString(this.font, Component.translatable("ponder.gameinfo.ui.description"), textX, textY, (descAlpha << 24) | 0xAAAAAA, true);
         textY += 25;
 
         for (int i = 0; i <= currentPage; i++) {
@@ -104,16 +104,16 @@ public class PonderScreen extends Screen {
                 float lineProgress = (rawProgress - i * 0.05f) / 0.8f;
                 lineProgress = Math.max(0.0f, Math.min(1.0f, lineProgress));
                 float lineEase = 1.0f - (float) Math.pow(1.0f - lineProgress, 3);
-
+                
                 int lineColor = ((int) (255 * lineEase) << 24) | 0xFFFFFF;
                 if (lineEase > 0) {
-                    context.text(this.font, this.topic.description.get(i), textX, (int)(textY + (1.0f - lineEase) * 20.0f), lineColor, true);
+                    context.drawString(this.font, this.topic.description.get(i), textX, (int)(textY + (1.0f - lineEase) * 20.0f), lineColor, true);
                 }
                 textY += 16;
             }
         }
 
-        poseStack.popPose();
+        poseStack.popMatrix();
 
         super.render(context, mouseX, mouseY, delta);
     }
