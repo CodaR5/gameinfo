@@ -36,7 +36,6 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.client.gui.GuiLayer;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 public class HudOverlay implements GuiLayer {
@@ -51,8 +50,6 @@ public class HudOverlay implements GuiLayer {
     
     public static final ConcurrentHashMap<BlockPos, ItemStack[]> serverFurnaceCache = new ConcurrentHashMap<>();
     public static final Map<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
-
-    private static int requestTickCounter = 0;
 
     public HudOverlay() {
         client = Minecraft.getInstance();
@@ -115,7 +112,6 @@ public class HudOverlay implements GuiLayer {
         ItemStack output = ItemStack.EMPTY;
         boolean gotData = false;
 
-        // 1. 如果打开了界面，优先从 menu 读取，这绝对是最准确的
         if (client.player != null && client.player.containerMenu instanceof AbstractFurnaceMenu menu) {
             try {
                 input = menu.getSlot(0).getItem();
@@ -127,15 +123,6 @@ public class HudOverlay implements GuiLayer {
             }
         }
 
-        // 2. 如果没打开界面，向服务端发请求（每 10 tick 一次）
-        if (!gotData) {
-            requestTickCounter++;
-            if (requestTickCounter % 10 == 0) {
-                PacketDistributor.sendToServer(new com.codar5.gameinfo.network.FurnaceDataPayload(pos, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY));
-            }
-        }
-
-        // 3. 使用网络包缓存（如果 1 没拿到，说明没开界面，就用网络包数据）
         if (!gotData) {
             ItemStack[] cached = serverFurnaceCache.get(pos);
             if (cached != null) {
@@ -146,7 +133,6 @@ public class HudOverlay implements GuiLayer {
             }
         }
 
-        // 4. 如果是单机模式且客户端有方块实体，尝试读取
         if (!gotData && client.level.getBlockEntity(pos) instanceof AbstractFurnaceBlockEntity clientFurnace) {
             input = clientFurnace.getItem(0);
             fuel = clientFurnace.getItem(1);
@@ -156,7 +142,6 @@ public class HudOverlay implements GuiLayer {
             }
         }
 
-        // 5. 兜底
         if (!gotData) {
             FurnaceDataCache.FurnaceItems fc = FurnaceDataCache.getFurnaceData(pos);
             if (fc != null) {
