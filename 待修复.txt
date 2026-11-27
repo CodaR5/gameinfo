@@ -1,0 +1,9 @@
+退出游戏后不会关闭游戏 在 UpdateChecker.java 中
+我们使用了 Java 11 的 java.net.http.HttpClient
+由于 HttpClient 默认会开启守护线程（或非守护线程）来处理连接池
+线程可能会挂起
+导致 JVM 无法正常退出
+
+接下来需要利用 ExecutorService 创建一个守护线程（Daemon Thread）来执行这个更新检查
+或者在 HttpRequest 设置一个合理的超时
+并且用 Thread 并设置 setDaemon(true)
