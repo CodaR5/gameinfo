@@ -3,7 +3,7 @@
  */
 package com.codar5.gameinfo.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -57,7 +57,7 @@ public class PonderScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         long elapsed = System.currentTimeMillis() - this.startTime;
         float rawProgress = (float) elapsed / ANIM_DURATION;
         rawProgress = Math.max(0.0f, Math.min(1.0f, rawProgress));
@@ -85,18 +85,18 @@ public class PonderScreen extends Screen {
             poseStack.translate(stageX, stageY);
             float iconScale = 2.5f + (1.5f * ease);
             poseStack.scale(iconScale, iconScale);
-            context.renderItem(this.cachedIcon, -8, -8);
+            context.item(this.cachedIcon, -8, -8);
             poseStack.popMatrix();
         }
 
         int titleColor = ((int) (255 * ease) << 24) | 0xFFD700;
-        context.drawCenteredString(this.font, this.topic.title, stageX, stageY + 55, titleColor);
+        context.centeredText(this.font, this.topic.title, stageX, stageY + 55, titleColor);
 
         int textX = splitPoint + 40;
         int textY = 60;
         
         int descAlpha = (int) (255 * ease);
-        context.drawString(this.font, Component.translatable("ponder.gameinfo.ui.description"), textX, textY, (descAlpha << 24) | 0xAAAAAA, true);
+        context.text(this.font, Component.translatable("ponder.gameinfo.ui.description"), textX, textY, (descAlpha << 24) | 0xAAAAAA, true);
         textY += 25;
 
         for (int i = 0; i <= currentPage; i++) {
@@ -107,7 +107,7 @@ public class PonderScreen extends Screen {
                 
                 int lineColor = ((int) (255 * lineEase) << 24) | 0xFFFFFF;
                 if (lineEase > 0) {
-                    context.drawString(this.font, this.topic.description.get(i), textX, (int)(textY + (1.0f - lineEase) * 20.0f), lineColor, true);
+                    context.text(this.font, this.topic.description.get(i), textX, (int)(textY + (1.0f - lineEase) * 20.0f), lineColor, true);
                 }
                 textY += 16;
             }
@@ -115,7 +115,7 @@ public class PonderScreen extends Screen {
 
         poseStack.popMatrix();
 
-        super.render(context, mouseX, mouseY, delta);
+        super.extractRenderState(context, mouseX, mouseY, delta);
     }
 
     @Override
