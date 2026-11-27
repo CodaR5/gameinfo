@@ -4,6 +4,7 @@
 package com.codar5.gameinfo.network;
 
 import com.codar5.gameinfo.hud.HudOverlay;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -24,25 +25,18 @@ public class GameInfoNetwork {
                 FurnaceDataPayload.TYPE,
                 FurnaceDataPayload.CODEC,
                 (payload, context) -> context.enqueueWork(() -> {
-                    HudOverlay.serverFurnaceCache.put(payload.pos(), new net.minecraft.world.item.ItemStack[]{
+                    HudOverlay.serverFurnaceCache.put(payload.pos(), new ItemStack[]{
                             payload.input(), payload.fuel(), payload.output()
                     });
                 })
         );
         
-        registrar.playToServer(
-                FurnaceDataPayload.TYPE,
-                FurnaceDataPayload.CODEC,
+        registrar.playToClient(
+                SlimeChunkSyncPayload.TYPE,
+                SlimeChunkSyncPayload.CODEC,
                 (payload, context) -> context.enqueueWork(() -> {
-                    net.minecraft.server.level.ServerPlayer player = (net.minecraft.server.level.ServerPlayer) context.player();
-                    if (player.level().getBlockEntity(payload.pos()) instanceof net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace) {
-                        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, new FurnaceDataPayload(
-                                payload.pos(),
-                                furnace.getItem(0),
-                                furnace.getItem(1),
-                                furnace.getItem(2)
-                        ));
-                    }
+                    long key = ((long) payload.cx() & 0xFFFFFFFFL) | (((long) payload.cz() & 0xFFFFFFFFL) << 32);
+                    HudOverlay.slimeChunkCache.put(key, payload.isSlime());
                 })
         );
     }
