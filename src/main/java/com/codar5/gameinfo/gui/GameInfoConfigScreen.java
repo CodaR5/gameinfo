@@ -357,7 +357,7 @@ public class GameInfoConfigScreen extends Screen {
         int contentBottom = this.height - CONTENT_BOTTOM_MARGIN;
         context.enableScissor(0, CONTENT_TOP - 4, this.width, contentBottom);
 
-        super.extractRenderState(context);
+        super.extractRenderState(context, mouseX, mouseY, delta);
 
         int basicTitleY = CONTENT_TOP + basicSectionTitleBaseY() + 6 - scrollOffset;
         context.centeredText(this.font, Component.translatable("gameinfo.gui.section.basic_info"), centerX, basicTitleY, SECTION_COLOR);
@@ -406,8 +406,8 @@ public class GameInfoConfigScreen extends Screen {
 
         context.disableScissor();
 
-        this.saveButton.extractRenderState(context);
-        this.cancelButton.extractRenderState(context);
+        this.saveButton.extractRenderState(context, mouseX, mouseY, delta);
+        this.cancelButton.extractRenderState(context, mouseX, mouseY, delta);
 
         if (currentHoveredWidget != null) {
             int px = (int) lastMouseX + 10;
