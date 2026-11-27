@@ -11,6 +11,8 @@ import com.codar5.gameinfo.gui.GameInfoConfigScreen;
 import com.codar5.gameinfo.hud.BlockInfoHudRenderer;
 import com.codar5.gameinfo.hud.EntityHealthHudRenderer;
 import com.codar5.gameinfo.hud.HudOverlay;
+import com.codar5.gameinfo.network.FurnaceDataPayload;
+import com.codar5.gameinfo.network.SlimeChunkSyncPayload;
 import com.codar5.gameinfo.util.SlimeChunkUtil;
 import com.codar5.gameinfo.util.UpdateChecker;
 import net.minecraft.client.Minecraft;
@@ -18,6 +20,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -89,14 +94,29 @@ public class GameInfoNeoForge {
             if (tickCounter % 10 != 0) return;
             for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
                 if (!player.level().dimension().equals(Level.OVERWORLD)) continue;
+                
                 BlockPos pos = player.blockPosition();
                 int cx = pos.getX() >> 4;
                 int cz = pos.getZ() >> 4;
                 
                 long seed = event.getServer().overworld().getSeed();
-                if (seed == 0L) continue;
-                boolean isSlime = SlimeChunkUtil.isSlimeChunk(seed, cx, cz);
-                PacketDistributor.sendToPlayer(player, new com.codar5.gameinfo.network.SlimeChunkSyncPayload(cx, cz, isSlime));
+                if (seed != 0L) {
+                    boolean isSlime = SlimeChunkUtil.isSlimeChunk(seed, cx, cz);
+                    PacketDistributor.sendToPlayer(player, new SlimeChunkSyncPayload(cx, cz, isSlime));
+                }
+
+                HitResult hit = player.pick(5.0D, 0.0F, false);
+                if (hit.getType() == HitResult.Type.BLOCK) {
+                    BlockPos furnacePos = ((BlockHitResult) hit).getBlockPos();
+                    if (player.level().getBlockEntity(furnacePos) instanceof AbstractFurnaceBlockEntity furnace) {
+                        PacketDistributor.sendToPlayer(player, new FurnaceDataPayload(
+                                furnacePos,
+                                furnace.getItem(0),
+                                furnace.getItem(1),
+                                furnace.getItem(2)
+                        ));
+                    }
+                }
             }
         }
     }
