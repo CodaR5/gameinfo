@@ -16,13 +16,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -47,7 +47,7 @@ public class HudOverlay implements GuiLayer {
     static GameInfoConfig config;
 
     private static final int SLIME_CHUNK_COLOR = 0xFF55FF55;
-
+    
     public static final ConcurrentHashMap<BlockPos, ItemStack[]> serverFurnaceCache = new ConcurrentHashMap<>();
     public static final Map<Long, Boolean> slimeChunkCache = new ConcurrentHashMap<>();
 
@@ -72,7 +72,7 @@ public class HudOverlay implements GuiLayer {
     }
 
     @Override
-    public void render(GuiGraphicsExtractor drawContext, DeltaTracker tickCounter) {
+    public void render(GuiGraphics drawContext, DeltaTracker tickCounter) {
         if (textRenderer == null) {
             textRenderer = client.font;
             if (textRenderer == null) {
@@ -99,7 +99,7 @@ public class HudOverlay implements GuiLayer {
         renderFurnaceInfo(drawContext);
     }
 
-    private void renderFurnaceInfo(GuiGraphicsExtractor ctx) {
+    private void renderFurnaceInfo(GuiGraphics ctx) {
         if (!config.showFurnaceInfo) return;
         if (client.level == null || client.hitResult == null) return;
         if (client.hitResult.getType() != HitResult.Type.BLOCK) return;
@@ -165,7 +165,7 @@ public class HudOverlay implements GuiLayer {
         ctx.fill(panelX + panelWidth - 1, panelY, panelX + panelWidth, panelY + panelHeight, 0xFFAAAAAA);
 
         Component title = Component.translatable("gameinfo.hud.furnace.title");
-        ctx.centeredText(textRenderer, title, panelX + panelWidth / 2, panelY + 5, getMainColor());
+        ctx.drawCenteredString(textRenderer, title, panelX + panelWidth / 2, panelY + 5, getMainColor());
 
         int rowX = panelX + 8;
         int rowY = panelY + 22;
@@ -176,24 +176,24 @@ public class HudOverlay implements GuiLayer {
         drawFurnaceRow(ctx, output, "gameinfo.hud.furnace.output", rowX, rowY);
     }
 
-    private void drawFurnaceRow(GuiGraphicsExtractor ctx, ItemStack stack, String labelKey, int x, int y) {
+    private void drawFurnaceRow(GuiGraphics ctx, ItemStack stack, String labelKey, int x, int y) {
         Component label = Component.translatable(labelKey);
-        ctx.text(textRenderer, label, x, y + 4, getMainColor(), true);
+        ctx.drawString(textRenderer, label, x, y + 4, getMainColor(), true);
         int labelWidth = textRenderer.width(label);
         int itemX = x + labelWidth + 6;
 
         if (!stack.isEmpty()) {
-            ctx.item(stack, itemX, y);
+            ctx.renderItem(stack, itemX, y);
             String name = stack.getHoverName().getString();
             int count = stack.getCount();
             String text = count > 1 ? name + " x" + count : name;
-            ctx.text(textRenderer, Component.literal(text), itemX + 20, y + 5, getDefaultColor(), true);
+            ctx.drawString(textRenderer, Component.literal(text), itemX + 20, y + 5, getDefaultColor(), true);
         } else {
-            ctx.text(textRenderer, Component.translatable("gameinfo.hud.furnace.empty"), itemX, y + 5, 0xFF808080, true);
+            ctx.drawString(textRenderer, Component.translatable("gameinfo.hud.furnace.empty"), itemX, y + 5, 0xFF808080, true);
         }
     }
 
-    private void renderPlayerEquipment(GuiGraphicsExtractor drawContext) {
+    private void renderPlayerEquipment(GuiGraphics drawContext) {
         if (!config.showEquipment) return;
         LocalPlayer player = client.player;
         if (player == null || client.gui.hud.isHidden()) return;
@@ -207,26 +207,26 @@ public class HudOverlay implements GuiLayer {
         for (int i = 0; i < durableItems.size(); i++) {
             ItemStack stack = durableItems.get(i);
             int currentY = startY - (i * 20);
-            drawContext.item(stack, startX, currentY);
+            drawContext.renderItem(stack, startX, currentY);
 
             int maxDamage = stack.getMaxDamage();
             int durability = stack.getMaxDamage() - stack.getDamageValue();
             String durabilityText = String.format("%d/%d", durability, maxDamage);
             int textX = startX + 20;
             int textY = currentY + 5;
-            drawContext.text(textRenderer, durabilityText, textX, textY, getMainColor(), true);
+            drawContext.drawString(textRenderer, durabilityText, textX, textY, getMainColor(), true);
         }
     }
 
     private static @NotNull List<ItemStack> getShowItemStacks(LocalPlayer player) {
         List<ItemStack> durableItems = new ArrayList<>();
-
+        
         for (EquipmentSlot slot : armorSlots) {
             ItemStack stack = player.getItemBySlot(slot);
             if (stack.isEmpty() || !stack.isDamageableItem()) {
                 continue;
             }
-
+            
             boolean isHand = (slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND);
             if (isHand) {
                 if (stack.getDamageValue() > 0) {
@@ -239,7 +239,7 @@ public class HudOverlay implements GuiLayer {
         return durableItems;
     }
 
-    private void renderRemark(GuiGraphicsExtractor drawContext) {
+    private void renderRemark(GuiGraphics drawContext) {
         if (!config.remark) return;
         Component versionLabel = Component.translatable("gameinfo.hud.version");
         String versionValue;
@@ -251,23 +251,23 @@ public class HudOverlay implements GuiLayer {
 
         int y = 2;
         int x = client.getWindow().getGuiScaledWidth() - textRenderer.width(versionLabel) - textRenderer.width(versionValue) - 2;
-        drawContext.text(textRenderer, versionLabel, x, y, getMainColor(), true);
+        drawContext.drawString(textRenderer, versionLabel, x, y, getMainColor(), true);
         x += textRenderer.width(versionLabel);
-        drawContext.text(textRenderer, versionValue, x, y, getDefaultColor(), true);
+        drawContext.drawString(textRenderer, versionValue, x, y, getDefaultColor(), true);
     }
 
-    private int renderFPS(GuiGraphicsExtractor drawContext, int x, int y) {
+    private int renderFPS(GuiGraphics drawContext, int x, int y) {
         if (!config.showFPS) return 0;
         int fps = client.getFps();
         Component fpsLabel = Component.translatable("gameinfo.hud.fps");
-        drawContext.text(textRenderer, fpsLabel, x, y, getMainColor(), true);
+        drawContext.drawString(textRenderer, fpsLabel, x, y, getMainColor(), true);
         int width = textRenderer.width(fpsLabel);
         Component fpsValue = Component.literal(fps == -1 ? Component.translatable("gameinfo.hud.unknown").getString() : String.valueOf(fps));
-        drawContext.text(textRenderer, fpsValue, x + width, y, getDefaultColor(), true);
+        drawContext.drawString(textRenderer, fpsValue, x + width, y, getDefaultColor(), true);
         return DEFAULT_HEIGHT;
     }
 
-    private int renderTimeAndDays(GuiGraphicsExtractor drawContext, int x, int y) {
+    private int renderTimeAndDays(GuiGraphics drawContext, int x, int y) {
         if (!config.showTimeAndDays) return 0;
         LocalPlayer player = client.player;
         if (player == null) return 0;
@@ -280,36 +280,36 @@ public class HudOverlay implements GuiLayer {
         int days = (int) (dayTime / 24000);
 
         Component daysLabel = Component.translatable("gameinfo.hud.days");
-        drawContext.text(textRenderer, daysLabel, x, y, getMainColor(), true);
+        drawContext.drawString(textRenderer, daysLabel, x, y, getMainColor(), true);
         int width = textRenderer.width(daysLabel);
-        drawContext.text(textRenderer, Component.literal(String.valueOf(days)), x + width, y, getDefaultColor(), true);
+        drawContext.drawString(textRenderer, Component.literal(String.valueOf(days)), x + width, y, getDefaultColor(), true);
         width += textRenderer.width(String.valueOf(days));
 
         Component timeLabel = Component.translatable("gameinfo.hud.time");
-        drawContext.text(textRenderer, timeLabel, x + width, y, getMainColor(), true);
+        drawContext.drawString(textRenderer, timeLabel, x + width, y, getMainColor(), true);
         width += textRenderer.width(timeLabel);
 
         String formatDate = String.format("%02d:%02d", hours, minutes);
-        drawContext.text(textRenderer, Component.literal(formatDate), x + width, y, getDefaultColor(), true);
+        drawContext.drawString(textRenderer, Component.literal(formatDate), x + width, y, getDefaultColor(), true);
         return DEFAULT_HEIGHT;
     }
 
-    private int renderCoordinates(GuiGraphicsExtractor drawContext, int x, int y) {
+    private int renderCoordinates(GuiGraphics drawContext, int x, int y) {
         if (!config.showCoordinates) return 0;
         LocalPlayer player = client.player;
         if (player == null) return 0;
         BlockPos pos = player.blockPosition();
         String directionString = getDirectionString();
         Component xyzLabel = Component.translatable("gameinfo.hud.xyz");
-        drawContext.text(textRenderer, xyzLabel, x, y, getMainColor(), true);
+        drawContext.drawString(textRenderer, xyzLabel, x, y, getMainColor(), true);
         int width = textRenderer.width(xyzLabel);
         String xyz = String.format("%d %d %d - %s", pos.getX(), pos.getY(), pos.getZ(), directionString);
-        drawContext.text(textRenderer, Component.literal(xyz), x + width, y, getDefaultColor(), true);
+        drawContext.drawString(textRenderer, Component.literal(xyz), x + width, y, getDefaultColor(), true);
 
         if (config.showSlimeChunk && isSlimeChunk(pos)) {
             int xyzWidth = textRenderer.width(xyz);
             Component slimeText = Component.literal(" - ").append(Component.translatable("gameinfo.hud.slime_chunk"));
-            drawContext.text(textRenderer, slimeText, x + width + xyzWidth, y, SLIME_CHUNK_COLOR, true);
+            drawContext.drawString(textRenderer, slimeText, x + width + xyzWidth, y, SLIME_CHUNK_COLOR, true);
         }
         return DEFAULT_HEIGHT;
     }
@@ -320,7 +320,7 @@ public class HudOverlay implements GuiLayer {
 
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-
+        
         long seed = WorldSeedStore.resolve();
         if (seed != 0L) {
             return SlimeChunkUtil.isSlimeChunk(seed, chunkX, chunkZ);
@@ -330,7 +330,7 @@ public class HudOverlay implements GuiLayer {
         return slimeChunkCache.getOrDefault(chunkKey, false);
     }
 
-    private int renderNetherCoordinates(GuiGraphicsExtractor drawContext, int x, int y) {
+    private int renderNetherCoordinates(GuiGraphics drawContext, int x, int y) {
         if (!config.showNetherCoordinates) return 0;
         LocalPlayer player = client.player;
         if (player == null) return 0;
@@ -350,13 +350,13 @@ public class HudOverlay implements GuiLayer {
         }
 
         Component coordinateLabel = Component.translatable(labelKey);
-        drawContext.text(textRenderer, coordinateLabel, x, y, getMainColor(), true);
+        drawContext.drawString(textRenderer, coordinateLabel, x, y, getMainColor(), true);
         int width = textRenderer.width(coordinateLabel);
-        drawContext.text(textRenderer, Component.literal(coordinateText), x + width, y, getDefaultColor(), true);
+        drawContext.drawString(textRenderer, Component.literal(coordinateText), x + width, y, getDefaultColor(), true);
         return DEFAULT_HEIGHT;
     }
 
-    private int renderBiome(GuiGraphicsExtractor drawContext, int x, int y) {
+    private int renderBiome(GuiGraphics drawContext, int x, int y) {
         if (!config.showBiome) return 0;
         LocalPlayer player = client.player;
         if (player == null) return 0;
@@ -364,7 +364,7 @@ public class HudOverlay implements GuiLayer {
         BlockPos pos = player.blockPosition();
 
         Holder<Biome> biomeEntry = world.getBiome(pos);
-        Identifier biomeId = biomeEntry.unwrapKey().map(ResourceKey::identifier).orElse(null);
+        ResourceLocation biomeId = biomeEntry.unwrapKey().map(ResourceKey::location).orElse(null);
 
         String biomeName;
         if (biomeId == null) {
@@ -375,9 +375,9 @@ public class HudOverlay implements GuiLayer {
         }
 
         Component biomeLabel = Component.translatable("gameinfo.hud.biome");
-        drawContext.text(textRenderer, biomeLabel, x, y, getMainColor(), true);
+        drawContext.drawString(textRenderer, biomeLabel, x, y, getMainColor(), true);
         int width = textRenderer.width(biomeLabel);
-        drawContext.text(textRenderer, Component.literal(biomeName), x + width, y, getDefaultColor(), true);
+        drawContext.drawString(textRenderer, Component.literal(biomeName), x + width, y, getDefaultColor(), true);
         return DEFAULT_HEIGHT;
     }
 
