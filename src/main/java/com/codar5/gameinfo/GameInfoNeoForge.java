@@ -5,6 +5,7 @@ package com.codar5.gameinfo;
 
 import com.codar5.gameinfo.command.ChunkLoader;
 import com.codar5.gameinfo.command.GameInfoCommand;
+import com.codar5.gameinfo.command.SeedCommand;
 import com.codar5.gameinfo.config.GameInfoConfig;
 import com.codar5.gameinfo.gui.GameInfoConfigScreen;
 import com.codar5.gameinfo.hud.BlockInfoHudRenderer;
@@ -31,12 +32,19 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Mod(value = "gameinfo", dist = Dist.CLIENT)
+@Mod(value = GameInfoNeoForge.MOD_ID, dist = Dist.CLIENT)
 public class GameInfoNeoForge {
     public static final String MOD_ID = "gameinfo";
+    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static GameInfoConfig config;
     public static int tickCounter = 0;
+
+    public static Logger getLogger() {
+        return LOGGER;
+    }
 
     public GameInfoNeoForge(ModContainer container) {
         config = new GameInfoConfig();
@@ -56,6 +64,7 @@ public class GameInfoNeoForge {
         public static void onRegisterCommands(RegisterCommandsEvent event) {
             GameInfoCommand.register(event.getDispatcher());
             ChunkLoader.register(event.getDispatcher());
+            SeedCommand.register(event.getDispatcher());
         }
 
         @SubscribeEvent
@@ -67,7 +76,7 @@ public class GameInfoNeoForge {
                 }
             }
         }
-
+        
         @SubscribeEvent
         public static void onClientSetup(net.neoforged.fml.event.lifecycle.FMLClientSetupEvent event) {
             event.enqueueWork(UpdateChecker::checkForUpdates);
@@ -85,7 +94,7 @@ public class GameInfoNeoForge {
                 BlockPos pos = player.blockPosition();
                 int cx = pos.getX() >> 4;
                 int cz = pos.getZ() >> 4;
-
+                
                 long seed = event.getServer().overworld().getSeed();
                 if (seed == 0L) continue;
                 boolean isSlime = SlimeChunkUtil.isSlimeChunk(seed, cx, cz);
