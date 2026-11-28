@@ -118,9 +118,9 @@
 
   "gameinfo.gui.separator": ": ",
   "gameinfo.gui.toggle.on": "开",
-  "gameinfo.gui.toggle.off": "关"
+  "gameinfo.gui.toggle.off": "关",
 
   "gameinfo.update.available": "§e[GameInfo] §a发现新版本 %s（当前 %s）。下载：%s",
   "gameinfo.update.up_to_date": "§a[GameInfo] 当前已是最新版本（%s）",
-  "gameinfo.update.failed": "§c[GameInfo] 检查更新失败，请查看日志",
+  "gameinfo.update.failed": "§c[GameInfo] 检查更新失败，请查看日志"
 }
