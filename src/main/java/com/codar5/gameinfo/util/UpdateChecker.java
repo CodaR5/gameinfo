@@ -3,100 +3,293 @@
  */
 package com.codar5.gameinfo.util;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.Version;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+public final class UpdateChecker {
+    public enum Status { IDLE, CHECKING, UP_TO_DATE, UPDATE_AVAILABLE, FAILED }
 
-public class UpdateChecker {
     private static final String MOD_ID = "gameinfo";
-    private static final String GITHUB_API_URL = "https://api.github.com/repos/CodaR5/gameinfo/releases/latest";
-    private static final String CURRENT_VERSION = FabricLoader.getInstance()
-            .getModContainer(MOD_ID)
-            .map(container -> container.getMetadata().getVersion().getFriendlyString())
-            .orElse("unknown");
+    private static final String ENDPOINT = "https://api.github.com/repos/CodaR5/gameinfo/releases/latest";
+    private static final long CHECK_INTERVAL_MS = 6L * 60L * 60L * 1000L;
+    private static final long FAILURE_RETRY_MS = 10L * 60L * 1000L;
+    private static final File CACHE_FILE = new File("config" + File.separator + "gameinfo-update.json");
+
+    private static volatile Status status = Status.IDLE;
+    private static volatile String latestTag = null;
+    private static volatile String latestVersion = null;
+    private static volatile String downloadUrl = null;
+    private static volatile long lastCheckTime = 0L;
+    private static volatile boolean announced = false;
+    private static volatile boolean manualPending = false;
+    private static volatile boolean checkInProgress = false;
+    private static boolean cacheLoaded = false;
+
+    private UpdateChecker() {
+    }
+
+    public static String getCurrentVersion() {
+        try {
+            return FabricLoader.getInstance().getModContainer(MOD_ID)
+                    .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                    .orElse("0.0.0");
+        } catch (Throwable t) {
+            return "0.0.0";
+        }
+    }
+
+    public static Status getStatus() {
+        return status;
+    }
+
+    public static boolean hasUpdate() {
+        return status == Status.UPDATE_AVAILABLE;
+    }
+
+    public static String getLatestVersion() {
+        return latestVersion;
+    }
+
+    public static String getLatestTag() {
+        return latestTag;
+    }
+
+    public static String getDownloadUrl() {
+        return downloadUrl;
+    }
 
     public static void checkForUpdates() {
-        HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(GITHUB_API_URL))
-                .timeout(Duration.ofSeconds(10))
-                .header("Accept", "application/vnd.github.v3+json")
-                .header("User-Agent", MOD_ID + "-UpdateChecker")
-                .GET()
-                .build();
-
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenAccept(UpdateChecker::handleResponse)
-                .exceptionally(e -> {
-                    System.err.println("[GameInfo] Failed to check for updates: " + e.getMessage());
-                    return null;
-                });
+        loadCache();
+        if (checkInProgress) return;
+        if (System.currentTimeMillis() - lastCheckTime < CHECK_INTERVAL_MS) return;
+        startCheck();
     }
 
-    private static void handleResponse(String responseBody) {
-        try {
-            Gson gson = new Gson();
-            JsonObject json = gson.fromJson(responseBody, JsonObject.class);
-            
-            if (json != null && json.has("tag_name")) {
-                String latestVersion = json.get("tag_name").getAsString();
-                String htmlUrl = json.get("html_url").getAsString();
+    public static void requestManualCheck() {
+        loadCache();
+        manualPending = true;
+        latestTag = null;
+        latestVersion = null;
+        downloadUrl = null;
+        startCheck();
+    }
 
-                if (isNewerVersion(latestVersion, CURRENT_VERSION)) {
-                    String message = String.format("§e[GameInfo] §a发现新版本! §7当前: %s §7-> §a最新: %s\n§b下载链接: %s",
-                            CURRENT_VERSION, latestVersion, htmlUrl);
-                    
-                    Minecraft.getInstance().execute(() -> {
-                        if (Minecraft.getInstance().player != null) {
-                            Minecraft.getInstance().player.sendSystemMessage(Component.literal(message));
-                        }
-                    });
+    private static void startCheck() {
+        if (checkInProgress) return;
+        checkInProgress = true;
+        status = Status.CHECKING;
+        Thread thread = new Thread(UpdateChecker::runCheck, "GameInfo-UpdateChecker");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private static void runCheck() {
+        boolean success = false;
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new URL(ENDPOINT).openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(8000);
+            connection.setReadTimeout(8000);
+            connection.setRequestProperty("Accept", "application/vnd.github+json");
+            connection.setRequestProperty("X-GitHub-Api-Version", "2022-11-28");
+            connection.setRequestProperty("User-Agent", MOD_ID + "/" + getCurrentVersion());
+
+            int code = connection.getResponseCode();
+            if (code == HttpURLConnection.HTTP_OK) {
+                StringBuilder body = new StringBuilder();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        body.append(line);
+                    }
                 }
+                success = parse(body.toString());
+                if (!success) {
+                    System.err.println("[GameInfo] Update payload did not contain a usable tag_name");
+                    status = Status.FAILED;
+                }
+            } else {
+                System.err.println("[GameInfo] Update check returned HTTP " + code + (code == 403 ? " (rate limited)" : ""));
+                status = Status.FAILED;
             }
-        } catch (Exception e) {
-            System.err.println("[GameInfo] Failed to parse update response: " + e.getMessage());
+        } catch (Throwable t) {
+            System.err.println("[GameInfo] Update check failed: " + t);
+            status = Status.FAILED;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            long now = System.currentTimeMillis();
+            lastCheckTime = success ? now : Math.max(0L, now - CHECK_INTERVAL_MS + FAILURE_RETRY_MS);
+            checkInProgress = false;
+            saveCache();
         }
     }
 
-    private static boolean isNewerVersion(String latest, String current) {
-        String latestClean = latest.replaceFirst("^[vV]", "");
-        String currentClean = current.replaceFirst("^[vV]", "");
-        
+    private static boolean parse(String body) {
+        JsonObject json;
         try {
-            String[] latestParts = latestClean.split("[.-]");
-            String[] currentParts = currentClean.split("[.-]");
-
-            int length = Math.max(latestParts.length, currentParts.length);
-            for (int i = 0; i < length; i++) {
-                int latestPart = i < latestParts.length ? parseIntSafe(latestParts[i]) : 0;
-                int currentPart = i < currentParts.length ? parseIntSafe(currentParts[i]) : 0;
-                
-                if (latestPart > currentPart) return true;
-                if (latestPart < currentPart) return false;
-            }
-        } catch (Exception e) {
-            return !latestClean.equals(currentClean);
+            JsonElement element = JsonParser.parseString(body);
+            if (element == null || !element.isJsonObject()) return false;
+            json = element.getAsJsonObject();
+        } catch (Throwable t) {
+            System.err.println("[GameInfo] Failed to parse update payload: " + t.getMessage());
+            return false;
         }
-        return false;
+
+        if (!json.has("tag_name") || json.get("tag_name").isJsonNull()) return false;
+        String tag = json.get("tag_name").getAsString();
+        String url = json.has("html_url") && !json.get("html_url").isJsonNull() ? json.get("html_url").getAsString() : null;
+
+        latestTag = tag;
+        latestVersion = normalize(tag);
+        downloadUrl = url;
+        status = isNewer(latestVersion, normalize(getCurrentVersion())) ? Status.UPDATE_AVAILABLE : Status.UP_TO_DATE;
+        return true;
     }
 
-    private static int parseIntSafe(String str) {
+    private static String normalize(String raw) {
+        if (raw == null) return "0";
+        String value = raw.trim();
+        value = value.replaceFirst("^[vV]", "");
+        value = value.replaceFirst("(?i)^release[-_ ]?", "");
+        value = value.replaceFirst("^[vV]", "");
+        int plus = value.indexOf('+');
+        if (plus > 0) {
+            value = value.substring(0, plus);
+        }
+        return value.isEmpty() ? "0" : value;
+    }
+
+    private static boolean isNewer(String candidate, String current) {
         try {
-            return Integer.parseInt(str);
-        } catch (NumberFormatException e) {
-            return 0;
+            return Version.parse(candidate).compareTo(Version.parse(current)) > 0;
+        } catch (Throwable t) {
+            return compareFallback(candidate, current) > 0;
+        }
+    }
+
+    private static int compareFallback(String left, String right) {
+        String[] a = left.split("[.\\-_ ]");
+        String[] b = right.split("[.\\-_ ]");
+        int length = Math.max(a.length, b.length);
+        for (int i = 0; i < length; i++) {
+            String sa = i < a.length ? a[i] : "0";
+            String sb = i < b.length ? b[i] : "0";
+            boolean na = sa.matches("\\d+");
+            boolean nb = sb.matches("\\d+");
+            int result;
+            if (na && nb) {
+                result = new BigInteger(sa).compareTo(new BigInteger(sb));
+            } else if (na) {
+                result = 1;
+            } else if (nb) {
+                result = -1;
+            } else {
+                result = sa.compareToIgnoreCase(sb);
+            }
+            if (result != 0) return result;
+        }
+        return 0;
+    }
+
+    public static void announceIfUpdateAvailable() {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null) return;
+
+        if (manualPending && status != Status.CHECKING && status != Status.IDLE) {
+            manualPending = false;
+            if (status == Status.UPDATE_AVAILABLE) {
+                announced = true;
+                client.player.sendSystemMessage(updateMessage());
+            } else if (status == Status.UP_TO_DATE) {
+                client.player.sendSystemMessage(Component.translatableWithFallback(
+                        "gameinfo.update.up_to_date",
+                        "[GameInfo] You are running the latest version (%s).",
+                        getCurrentVersion()));
+            } else if (status == Status.FAILED) {
+                client.player.sendSystemMessage(Component.translatableWithFallback(
+                        "gameinfo.update.failed",
+                        "[GameInfo] Update check failed. Check the log for details."));
+            }
+            return;
+        }
+
+        if (status == Status.UPDATE_AVAILABLE && !announced) {
+            announced = true;
+            client.player.sendSystemMessage(updateMessage());
+        }
+    }
+
+    private static Component updateMessage() {
+        return Component.translatableWithFallback(
+                "gameinfo.update.available",
+                "[GameInfo] Version %s is available (you have %s). Download: %s",
+                latestTag == null ? "?" : latestTag,
+                getCurrentVersion(),
+                downloadUrl == null ? "" : downloadUrl);
+    }
+
+    private static void loadCache() {
+        if (cacheLoaded) return;
+        cacheLoaded = true;
+        if (!CACHE_FILE.isFile()) return;
+        try (Reader reader = new InputStreamReader(new FileInputStream(CACHE_FILE), StandardCharsets.UTF_8)) {
+            JsonElement element = JsonParser.parseReader(reader);
+            if (element == null || !element.isJsonObject()) return;
+            JsonObject json = element.getAsJsonObject();
+            if (json.has("lastCheck") && !json.get("lastCheck").isJsonNull()) {
+                lastCheckTime = json.get("lastCheck").getAsLong();
+            }
+            if (json.has("tag") && !json.get("tag").isJsonNull()) {
+                latestTag = json.get("tag").getAsString();
+            }
+            if (json.has("version") && !json.get("version").isJsonNull()) {
+                latestVersion = json.get("version").getAsString();
+            }
+            if (json.has("url") && !json.get("url").isJsonNull()) {
+                downloadUrl = json.get("url").getAsString();
+            }
+            if (latestVersion != null) {
+                status = isNewer(latestVersion, normalize(getCurrentVersion())) ? Status.UPDATE_AVAILABLE : Status.UP_TO_DATE;
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void saveCache() {
+        try {
+            File parent = CACHE_FILE.getParentFile();
+            if (parent != null && !parent.isDirectory()) {
+                parent.mkdirs();
+            }
+            JsonObject json = new JsonObject();
+            json.addProperty("lastCheck", lastCheckTime);
+            if (latestTag != null) json.addProperty("tag", latestTag);
+            if (latestVersion != null) json.addProperty("version", latestVersion);
+            if (downloadUrl != null) json.addProperty("url", downloadUrl);
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(CACHE_FILE), StandardCharsets.UTF_8)) {
+                writer.write(json.toString());
+            }
+        } catch (Throwable ignored) {
         }
     }
 }
