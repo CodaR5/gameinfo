@@ -17,6 +17,7 @@ import com.codar5.gameinfo.util.GameInfoOptimizer;
 import com.codar5.gameinfo.util.UpdateChecker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -37,7 +38,7 @@ public class GameinfoClient implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register(command);
         ClientCommandRegistrationCallback.EVENT.register(new SeedCommand());
         CommandRegistrationCallback.EVENT.register(chunkLoader);
-        
+
         KeybindHandler.register();
 
         GameInfoNetwork.registerPayloads();
@@ -48,13 +49,15 @@ public class GameinfoClient implements ClientModInitializer {
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(modName, "custom_text"), hudOverlay);
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(modName, "block_info"), blockInfoHudRenderer);
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(modName, "entity_health"), entityHealthHudRenderer);
-        
+
         FurnaceEventHandler.registerEvents();
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, c) -> {
             HudOverlay.slimeChunkCache.clear();
             HudOverlay.serverFurnaceCache.clear();
         });
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> UpdateChecker.announceIfUpdateAvailable());
 
         UpdateChecker.checkForUpdates();
     }
