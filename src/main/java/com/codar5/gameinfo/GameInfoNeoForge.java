@@ -78,8 +78,9 @@ public class GameInfoNeoForge {
                     mc.gui.setScreen(new GameInfoConfigScreen(null));
                 }
             }
+            UpdateChecker.announceIfUpdateAvailable();
         }
-        
+
         @SubscribeEvent
         public static void onClientSetup(net.neoforged.fml.event.lifecycle.FMLClientSetupEvent event) {
             event.enqueueWork(UpdateChecker::checkForUpdates);
@@ -94,11 +95,11 @@ public class GameInfoNeoForge {
             if (tickCounter % 10 != 0) return;
             for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
                 if (!player.level().dimension().equals(Level.OVERWORLD)) continue;
-                
+
                 BlockPos pos = player.blockPosition();
                 int cx = pos.getX() >> 4;
                 int cz = pos.getZ() >> 4;
-                
+
                 long seed = event.getServer().overworld().getSeed();
                 if (seed != 0L) {
                     boolean isSlime = SlimeChunkUtil.isSlimeChunk(seed, cx, cz);
