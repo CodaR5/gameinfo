@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - "26.4-snapshot"
+      - "26.4-Fabric"
       - "26.3-NeoForge"
       - "26.3-Fabric"
       - "26.2-Fabric"
@@ -13,7 +13,7 @@ on:
       - 'v*'
   pull_request:
     branches:
-      - "26.4-snapshot"
+      - "26.4-Fabric"
       - "26.3-NeoForge"
       - "26.3-Fabric"
       - "26.2-Fabric"
