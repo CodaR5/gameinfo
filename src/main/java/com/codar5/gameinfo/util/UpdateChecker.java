@@ -8,11 +8,11 @@ import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class UpdateChecker {
     private static final String MOD_ID = "gameinfo";
@@ -20,25 +20,38 @@ public class UpdateChecker {
     private static final String CURRENT_VERSION = "4.0.8.alpha";
 
     public static void checkForUpdates() {
-        HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
+        Thread thread = new Thread(() -> {
+            HttpURLConnection connection = null;
+            try {
+                URL url = new URL(GITHUB_API_URL);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                connection.setRequestProperty("User-Agent", MOD_ID + "-UpdateChecker");
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(GITHUB_API_URL))
-                .timeout(Duration.ofSeconds(10))
-                .header("Accept", "application/vnd.github.v3+json")
-                .header("User-Agent", MOD_ID + "-UpdateChecker")
-                .GET()
-                .build();
-
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenAccept(UpdateChecker::handleResponse)
-                .exceptionally(e -> {
-                    System.err.println("[GameInfo] Failed to check for updates: " + e.getMessage());
-                    return null;
-                });
+                int responseCode = connection.getResponseCode();
+                if (responseCode == 200) {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                        StringBuilder response = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            response.append(line);
+                        }
+                        handleResponse(response.toString());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[GameInfo] Failed to check for updates: " + e.getMessage());
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private static void handleResponse(String responseBody) {
