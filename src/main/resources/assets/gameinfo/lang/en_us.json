@@ -119,4 +119,8 @@
   "gameinfo.gui.separator": ": ",
   "gameinfo.gui.toggle.on": "On",
   "gameinfo.gui.toggle.off": "Off"
+
+  "gameinfo.update.available": "§e[GameInfo] §aVersion %s is available (you have %s). Download: %s",
+  "gameinfo.update.up_to_date": "§a[GameInfo] You are running the latest version (%s)",
+  "gameinfo.update.failed": "§c[GameInfo] Update check failed, see the log",
 }
